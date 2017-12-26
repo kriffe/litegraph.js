@@ -1,0 +1,29 @@
+var CONSTANTS = {
+  NODE_TITLE_HEIGHT: 16,
+  NODE_SLOT_HEIGHT: 15,
+  NODE_WIDTH: 140,
+  NODE_MIN_WIDTH: 50,
+  NODE_COLLAPSED_RADIUS: 10,
+  NODE_COLLAPSED_WIDTH: 80,
+  CANVAS_GRID_SIZE: 10,
+  NODE_TITLE_COLOR: '#222',
+  NODE_DEFAULT_COLOR: '#999',
+  NODE_DEFAULT_BGCOLOR: '#444',
+  NODE_DEFAULT_BOXCOLOR: '#AEF',
+  NODE_DEFAULT_SHAPE: 'box',
+  MAX_NUMBER_OF_NODES: 1000, // avoid infinite loops
+  DEFAULT_POSITION: [100, 100], // default node position
+  node_images_path: '',
+
+// enums
+  INPUT: 1,
+  OUTPUT: 2,
+
+  ALWAYS: 0,
+  ON_EVENT: 1,
+  NEVER: 2
+}
+
+export {
+  CONSTANTS
+}

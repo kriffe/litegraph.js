@@ -1,4 +1,6 @@
 import * as LITEGRAPH from '../litegraph.js'
+import {CONSTANTS} from '../Constants.js'
+
 
 // import createNode from '../litegraph.js'
 // import LGraph from '../litegraph.js'
@@ -313,7 +315,7 @@ Watch.prototype.onDrawBackground = function (ctx) {
 
 // Show value inside the debug console
 function Console () {
-  this.mode = LITEGRAPH.ON_EVENT
+  this.mode = CONSTANTS.ON_EVENT
   this.size = [60, 20]
   this.addProperty('msg', '')
   this.addInput('log', LITEGRAPH.EVENT)
