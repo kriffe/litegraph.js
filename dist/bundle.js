@@ -1,3 +1,4 @@
+var LITEGRAPH =
 /******/ (function(modules) { // webpackBootstrap
 /******/ 	// The module cache
 /******/ 	var installedModules = {};
@@ -68,18 +69,17 @@
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "LGraph", function() { return LGraph; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "LGraphNode", function() { return LGraphNode; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "LGraphCanvas", function() { return LGraphCanvas; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "createNode", function() { return createNode; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "ACTION", function() { return ACTION; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "EVENT", function() { return EVENT; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "registerNodeType", function() { return registerNodeType; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "ALWAYS", function() { return ALWAYS; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "ON_EVENT", function() { return ON_EVENT; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "NEVER", function() { return NEVER; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "allow_scripts", function() { return allow_scripts; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "c", function() { return LGraph; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "e", function() { return LGraphNode; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "d", function() { return LGraphCanvas; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "h", function() { return createNode; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return ACTION; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "b", function() { return EVENT; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "i", function() { return registerNodeType; });
+/* unused harmony export ALWAYS */
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "f", function() { return ON_EVENT; });
+/* unused harmony export NEVER */
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "g", function() { return allow_scripts; });
 // *************************************************************
 //   LiteGraph CLASS                                     *******
 // *************************************************************
@@ -5052,7 +5052,11 @@ LiteGraph.createNodetypeWrapper = function( class_object )
 Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__src_litegraph_js__ = __webpack_require__(0);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__src_nodes_base_js__ = __webpack_require__(2);
-/* harmony reexport (module object) */ __webpack_require__.d(__webpack_exports__, "LITEGRAPH", function() { return __WEBPACK_IMPORTED_MODULE_0__src_litegraph_js__; });
+/* harmony reexport (binding) */ __webpack_require__.d(__webpack_exports__, "registerNodeType", function() { return __WEBPACK_IMPORTED_MODULE_0__src_litegraph_js__["i"]; });
+/* harmony reexport (binding) */ __webpack_require__.d(__webpack_exports__, "createNode", function() { return __WEBPACK_IMPORTED_MODULE_0__src_litegraph_js__["h"]; });
+/* harmony reexport (binding) */ __webpack_require__.d(__webpack_exports__, "LGraphCanvas", function() { return __WEBPACK_IMPORTED_MODULE_0__src_litegraph_js__["d"]; });
+/* harmony reexport (binding) */ __webpack_require__.d(__webpack_exports__, "LGraphNode", function() { return __WEBPACK_IMPORTED_MODULE_0__src_litegraph_js__["e"]; });
+/* harmony reexport (binding) */ __webpack_require__.d(__webpack_exports__, "LGraph", function() { return __WEBPACK_IMPORTED_MODULE_0__src_litegraph_js__["c"]; });
 
 
 
@@ -5061,15 +5065,14 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 
 // LiteGraph.registerNodeType('events/delay', DelayEvent)
 
-__WEBPACK_IMPORTED_MODULE_0__src_litegraph_js__["registerNodeType"]('basic/time', __WEBPACK_IMPORTED_MODULE_1__src_nodes_base_js__["g" /* Time */])
-__WEBPACK_IMPORTED_MODULE_0__src_litegraph_js__["registerNodeType"]('basic/script', __WEBPACK_IMPORTED_MODULE_1__src_nodes_base_js__["e" /* NodeScript */])
-__WEBPACK_IMPORTED_MODULE_0__src_litegraph_js__["registerNodeType"]('graph/subgraph', __WEBPACK_IMPORTED_MODULE_1__src_nodes_base_js__["f" /* Subgraph */])
-__WEBPACK_IMPORTED_MODULE_0__src_litegraph_js__["registerNodeType"]('graph/input', __WEBPACK_IMPORTED_MODULE_1__src_nodes_base_js__["c" /* GlobalInput */])
-__WEBPACK_IMPORTED_MODULE_0__src_litegraph_js__["registerNodeType"]('graph/output', __WEBPACK_IMPORTED_MODULE_1__src_nodes_base_js__["d" /* GlobalOutput */])
-__WEBPACK_IMPORTED_MODULE_0__src_litegraph_js__["registerNodeType"]('basic/const', __WEBPACK_IMPORTED_MODULE_1__src_nodes_base_js__["b" /* Constant */])
-__WEBPACK_IMPORTED_MODULE_0__src_litegraph_js__["registerNodeType"]('basic/watch', __WEBPACK_IMPORTED_MODULE_1__src_nodes_base_js__["h" /* Watch */])
-__WEBPACK_IMPORTED_MODULE_0__src_litegraph_js__["registerNodeType"]('basic/console', __WEBPACK_IMPORTED_MODULE_1__src_nodes_base_js__["a" /* Console */])
-
+Object(__WEBPACK_IMPORTED_MODULE_0__src_litegraph_js__["i" /* registerNodeType */])('basic/time', __WEBPACK_IMPORTED_MODULE_1__src_nodes_base_js__["g" /* Time */])
+Object(__WEBPACK_IMPORTED_MODULE_0__src_litegraph_js__["i" /* registerNodeType */])('basic/script', __WEBPACK_IMPORTED_MODULE_1__src_nodes_base_js__["e" /* NodeScript */])
+Object(__WEBPACK_IMPORTED_MODULE_0__src_litegraph_js__["i" /* registerNodeType */])('graph/subgraph', __WEBPACK_IMPORTED_MODULE_1__src_nodes_base_js__["f" /* Subgraph */])
+Object(__WEBPACK_IMPORTED_MODULE_0__src_litegraph_js__["i" /* registerNodeType */])('graph/input', __WEBPACK_IMPORTED_MODULE_1__src_nodes_base_js__["c" /* GlobalInput */])
+Object(__WEBPACK_IMPORTED_MODULE_0__src_litegraph_js__["i" /* registerNodeType */])('graph/output', __WEBPACK_IMPORTED_MODULE_1__src_nodes_base_js__["d" /* GlobalOutput */])
+Object(__WEBPACK_IMPORTED_MODULE_0__src_litegraph_js__["i" /* registerNodeType */])('basic/const', __WEBPACK_IMPORTED_MODULE_1__src_nodes_base_js__["b" /* Constant */])
+Object(__WEBPACK_IMPORTED_MODULE_0__src_litegraph_js__["i" /* registerNodeType */])('basic/watch', __WEBPACK_IMPORTED_MODULE_1__src_nodes_base_js__["h" /* Watch */])
+Object(__WEBPACK_IMPORTED_MODULE_0__src_litegraph_js__["i" /* registerNodeType */])('basic/console', __WEBPACK_IMPORTED_MODULE_1__src_nodes_base_js__["a" /* Console */])
 
 
 
@@ -5094,9 +5097,9 @@ __WEBPACK_IMPORTED_MODULE_0__src_litegraph_js__["registerNodeType"]('basic/conso
 // import LGraph from '../litegraph.js'
 // import LGraphNode from '../litegraph.js'
 
-const createNode = __WEBPACK_IMPORTED_MODULE_0__litegraph_js__["createNode"]
-const LGraph = __WEBPACK_IMPORTED_MODULE_0__litegraph_js__["LGraph"]
-const LGraphNode = __WEBPACK_IMPORTED_MODULE_0__litegraph_js__["LGraphNode"]
+const createNode = __WEBPACK_IMPORTED_MODULE_0__litegraph_js__["h" /* createNode */]
+const LGraph = __WEBPACK_IMPORTED_MODULE_0__litegraph_js__["c" /* LGraph */]
+const LGraphNode = __WEBPACK_IMPORTED_MODULE_0__litegraph_js__["e" /* LGraphNode */]
 
 // basic nodes
 
@@ -5403,10 +5406,10 @@ Watch.prototype.onDrawBackground = function (ctx) {
 
 // Show value inside the debug console
 function Console () {
-  this.mode = __WEBPACK_IMPORTED_MODULE_0__litegraph_js__["ON_EVENT"]
+  this.mode = __WEBPACK_IMPORTED_MODULE_0__litegraph_js__["f" /* ON_EVENT */]
   this.size = [60, 20]
   this.addProperty('msg', '')
-  this.addInput('log', __WEBPACK_IMPORTED_MODULE_0__litegraph_js__["EVENT"])
+  this.addInput('log', __WEBPACK_IMPORTED_MODULE_0__litegraph_js__["b" /* EVENT */])
   this.addInput('msg', 0)
 }
 
@@ -5424,7 +5427,7 @@ Console.prototype.onExecute = function () {
 }
 
 Console.prototype.onGetInputs = function () {
-  return [['log', __WEBPACK_IMPORTED_MODULE_0__litegraph_js__["ACTION"]], ['warn', __WEBPACK_IMPORTED_MODULE_0__litegraph_js__["ACTION"]], ['error', __WEBPACK_IMPORTED_MODULE_0__litegraph_js__["ACTION"]]]
+  return [['log', __WEBPACK_IMPORTED_MODULE_0__litegraph_js__["a" /* ACTION */]], ['warn', __WEBPACK_IMPORTED_MODULE_0__litegraph_js__["a" /* ACTION */]], ['error', __WEBPACK_IMPORTED_MODULE_0__litegraph_js__["a" /* ACTION */]]]
 }
 
 
@@ -5449,7 +5452,7 @@ NodeScript.widgets_info = {
 }
 
 NodeScript.prototype.onPropertyChanged = function (name, value) {
-  if (name == 'onExecute' && __WEBPACK_IMPORTED_MODULE_0__litegraph_js__["allow_scripts"])	{
+  if (name == 'onExecute' && __WEBPACK_IMPORTED_MODULE_0__litegraph_js__["g" /* allow_scripts */])	{
     this._func = null
     try		{
       this._func = new Function(value)
