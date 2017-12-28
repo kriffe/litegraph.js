@@ -3274,7 +3274,7 @@ LGraphCanvas.onMenuAdd = function (node, options, e, prevMenu) {
   var canvas = LGraphCanvas.active_canvas
   var refWindow = canvas.getCanvasWindow()
 
-  var values = getNodeTypesCategories()
+  var values = getNodeTypesCategories()   //ToDo Connect to graph
   var entries = []
   for (var i in values) {
     if (values[i]) { entries.push({ value: values[i], content: values[i], has_submenu: true }) }
@@ -3284,17 +3284,17 @@ LGraphCanvas.onMenuAdd = function (node, options, e, prevMenu) {
 
   function inner_clicked (v, option, e) {
     var category = v.value
-    var node_types = getNodeTypesInCategory(category)
+    var node_types = getNodeTypesInCategory(category)   //ToDo: Connect to graph
     var values = []
     for (var i in node_types) { values.push({ content: node_types[i].title, value: node_types[i].type }) }
 
-    new __WEBPACK_IMPORTED_MODULE_1__ContextMenu_js__["a" /* ContextMenu */](values, {event: e, callback: inner_create, parentMenu: menu }, refWindow)
+    var innerMenu = new __WEBPACK_IMPORTED_MODULE_1__ContextMenu_js__["a" /* ContextMenu */](values, {event: e, callback: inner_create, parentMenu: menu }, refWindow)
     return false
   }
 
   function inner_create (v, e) {
     var first_event = prevMenu.getFirstEvent()
-    var node = createNode(v.value)
+    var node = createNode(v.value)              //ToDo: Connect to graph
     if (node) {
       node.pos = canvas.convertEventToCanvas(first_event)
       canvas.graph.add(node)
@@ -3618,16 +3618,17 @@ LGraphCanvas.onMenuNodePin = function (value, options, e, menu, node) {
 }
 
 LGraphCanvas.onMenuNodeMode = function (value, options, e, menu, node) {
-  new __WEBPACK_IMPORTED_MODULE_1__ContextMenu_js__["a" /* ContextMenu */](['Always', 'On Event', 'Never'], {event: e, callback: inner_clicked, parentMenu: prev_menu, node: node })
+  var prevMenu    //??
+  var menu = new __WEBPACK_IMPORTED_MODULE_1__ContextMenu_js__["a" /* ContextMenu */](['Always', 'On Event', 'Never'], {event: e, callback: inner_clicked, parentMenu: prevMenu, node: node })
 
   function inner_clicked (v) {
     if (!node) { return }
     switch (v) {
-      case 'On Event': node.mode = ON_EVENT; break
-      case 'Never': node.mode = NEVER; break
+      case 'On Event': node.mode = __WEBPACK_IMPORTED_MODULE_0__Constants_js__["a" /* CONSTANTS */].ON_EVENT; break
+      case 'Never': node.mode = __WEBPACK_IMPORTED_MODULE_0__Constants_js__["a" /* CONSTANTS */].NEVER; break
       case 'Always':
       default:
-        node.mode = ALWAYS; break
+        node.mode = __WEBPACK_IMPORTED_MODULE_0__Constants_js__["a" /* CONSTANTS */].ALWAYS; break
     }
   }
 
@@ -3635,7 +3636,7 @@ LGraphCanvas.onMenuNodeMode = function (value, options, e, menu, node) {
 }
 
 LGraphCanvas.onMenuNodeColors = function (value, options, e, menu, node) {
-  if (!node) { throw ('no node for color') }
+  if (!node) { throw new Error('no node for color') }
 
   var values = []
   for (var i in LGraphCanvas.node_colors) {
@@ -3643,7 +3644,8 @@ LGraphCanvas.onMenuNodeColors = function (value, options, e, menu, node) {
     var value = {value: i, content: "<span style='display: block; color:" + color.color + '; background-color:' + color.bgcolor + "'>" + i + '</span>'}
     values.push(value)
   }
-  new __WEBPACK_IMPORTED_MODULE_1__ContextMenu_js__["a" /* ContextMenu */](values, { event: e, callback: inner_clicked, parentMenu: menu, node: node })
+
+  var menu = new __WEBPACK_IMPORTED_MODULE_1__ContextMenu_js__["a" /* ContextMenu */](values, { event: e, callback: inner_clicked, parentMenu: menu, node: node })
 
   function inner_clicked (v) {
     if (!node) { return }
@@ -3660,9 +3662,9 @@ LGraphCanvas.onMenuNodeColors = function (value, options, e, menu, node) {
 }
 
 LGraphCanvas.onMenuNodeShapes = function (value, options, e, menu, node) {
-  if (!node) { throw ('no node passed') }
+  if (!node) { throw new Error('no node passed') }
 
-  new __WEBPACK_IMPORTED_MODULE_1__ContextMenu_js__["a" /* ContextMenu */](['box', 'round'], { event: e, callback: inner_clicked, parentMenu: menu, node: node })
+  var menu = new __WEBPACK_IMPORTED_MODULE_1__ContextMenu_js__["a" /* ContextMenu */](['box', 'round'], { event: e, callback: inner_clicked, parentMenu: menu, node: node })
 
   function inner_clicked (v) {
     if (!node) { return }
@@ -3674,7 +3676,7 @@ LGraphCanvas.onMenuNodeShapes = function (value, options, e, menu, node) {
 }
 
 LGraphCanvas.onMenuNodeRemove = function (value, options, e, menu, node) {
-  if (!node) { throw ('no node passed') }
+  if (!node) { throw new Error('no node passed') }
 
   if (node.removable == false) { return }
   node.graph.remove(node)
@@ -3722,18 +3724,18 @@ LGraphCanvas.prototype.getNodeMenuOptions = function (node) {
 
   if (node.getMenuOptions) { options = node.getMenuOptions(this) } else {
     options = [
-{content: 'Inputs', has_submenu: true, disabled: true, callback: LGraphCanvas.showMenuNodeOptionalInputs },
-{content: 'Outputs', has_submenu: true, disabled: true, callback: LGraphCanvas.showMenuNodeOptionalOutputs },
+    { content: 'Inputs', has_submenu: true, disabled: true, callback: LGraphCanvas.showMenuNodeOptionalInputs },
+    { content: 'Outputs', has_submenu: true, disabled: true, callback: LGraphCanvas.showMenuNodeOptionalOutputs },
       null,
-{content: 'Properties', has_submenu: true, callback: LGraphCanvas.onShowMenuNodeProperties },
+    { content: 'Properties', has_submenu: true, callback: LGraphCanvas.onShowMenuNodeProperties },
       null,
-{content: 'Title', callback: LGraphCanvas.onShowTitleEditor },
-{content: 'Mode', has_submenu: true, callback: LGraphCanvas.onMenuNodeMode },
-{content: 'Resize', callback: LGraphCanvas.onResizeNode },
-{content: 'Collapse', callback: LGraphCanvas.onMenuNodeCollapse },
-{content: 'Pin', callback: LGraphCanvas.onMenuNodePin },
-{content: 'Colors', has_submenu: true, callback: LGraphCanvas.onMenuNodeColors },
-{content: 'Shapes', has_submenu: true, callback: LGraphCanvas.onMenuNodeShapes },
+    { content: 'Title', callback: LGraphCanvas.onShowTitleEditor },
+    { content: 'Mode', has_submenu: true, callback: LGraphCanvas.onMenuNodeMode },
+    { content: 'Resize', callback: LGraphCanvas.onResizeNode },
+    { content: 'Collapse', callback: LGraphCanvas.onMenuNodeCollapse },
+    { content: 'Pin', callback: LGraphCanvas.onMenuNodePin },
+    { content: 'Colors', has_submenu: true, callback: LGraphCanvas.onMenuNodeColors },
+    { content: 'Shapes', has_submenu: true, callback: LGraphCanvas.onMenuNodeShapes },
       null
     ]
   }
@@ -3746,8 +3748,8 @@ LGraphCanvas.prototype.getNodeMenuOptions = function (node) {
     }
   }
 
-  if (node.clonable !== false) { options.push({content: 'Clone', callback: LGraphCanvas.onMenuNodeClone }) }
-  if (node.removable !== false) { options.push(null, {content: 'Remove', callback: LGraphCanvas.onMenuNodeRemove }) }
+  if (node.clonable !== false) { options.push({ content: 'Clone', callback: LGraphCanvas.onMenuNodeClone }) }
+  if (node.removable !== false) { options.push(null, { content: 'Remove', callback: LGraphCanvas.onMenuNodeRemove }) }
 
   if (node.onGetInputs) {
     var inputs = node.onGetInputs()
@@ -5240,12 +5242,9 @@ Subgraph.prototype.onSubgraphTypeChangeGlobalOutput = function (name, type) {
 
 Subgraph.prototype.getExtraMenuOptions = function (graphcanvas) {
   var that = this
-  return [ {content: 'Open',
-    callback:
-function () {
-  graphcanvas.openSubgraph(that.subgraph)
-}
-  }]
+  return [
+    { content: 'Open', callback: function () { graphcanvas.openSubgraph(that.subgraph) } }
+  ]
 }
 
 Subgraph.prototype.onExecute = function () {
