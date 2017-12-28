@@ -1,7 +1,6 @@
 import * as LITEGRAPH from '../litegraph.js'
 import {CONSTANTS} from '../Constants.js'
 
-
 // import createNode from '../litegraph.js'
 // import LGraph from '../litegraph.js'
 // import LGraphNode from '../litegraph.js'
@@ -31,7 +30,7 @@ function Subgraph () {
   var that = this
   this.size = [120, 60]
 
-	// create inner graph
+// create inner graph
   this.subgraph = new LGraph()
   this.subgraph._subgraph_node = this
   this.subgraph._is_subgraph = true
@@ -51,7 +50,7 @@ Subgraph.title = 'Subgraph'
 Subgraph.desc = 'Graph inside a node'
 
 Subgraph.prototype.onSubgraphNewGlobalInput = function (name, type) {
-	// add input to the node
+// add input to the node
   this.addInput(name, type)
 }
 
@@ -70,7 +69,7 @@ Subgraph.prototype.onSubgraphTypeChangeGlobalInput = function (name, type) {
 }
 
 Subgraph.prototype.onSubgraphNewGlobalOutput = function (name, type) {
-	// add output to the node
+// add output to the node
   this.addOutput(name, type)
 }
 
@@ -92,28 +91,28 @@ Subgraph.prototype.getExtraMenuOptions = function (graphcanvas) {
   var that = this
   return [ {content: 'Open',
     callback:
-		function () {
+function () {
   graphcanvas.openSubgraph(that.subgraph)
 }
   }]
 }
 
 Subgraph.prototype.onExecute = function () {
-	// send inputs to subgraph global inputs
+// send inputs to subgraph global inputs
   if (this.inputs) {
-    for (var i = 0; i < this.inputs.length; i++)		{
+    for (var i = 0; i < this.inputs.length; i++) {
       var input = this.inputs[i]
       var value = this.getInputData(i)
       this.subgraph.setGlobalInputData(input.name, value)
     }
   }
 
-	// execute
+// execute
   this.subgraph.runStep()
 
-	// send subgraph global outputs to outputs
+// send subgraph global outputs to outputs
   if (this.outputs) {
-    for (var i = 0; i < this.outputs.length; i++)		{
+    for (var i = 0; i < this.outputs.length; i++) {
       var output = this.outputs[i]
       var value = this.subgraph.getGlobalOutputData(output.name)
       this.setOutputData(i, value)
@@ -123,7 +122,7 @@ Subgraph.prototype.onExecute = function () {
 
 Subgraph.prototype.configure = function (o) {
   LGraphNode.prototype.configure.call(this, o)
-	// this.subgraph.configure(o.graph);
+// this.subgraph.configure(o.graph);
 }
 
 Subgraph.prototype.serialize = function () {
@@ -142,11 +141,9 @@ Subgraph.prototype.clone = function () {
   return node
 }
 
-
-
 // Input for a subgraph
 function GlobalInput () {
-	// random name to avoid problems with other outputs when added
+// random name to avoid problems with other outputs when added
   var input_name = 'input_' + (Math.random() * 1000).toFixed()
 
   this.addOutput(input_name, null)
@@ -192,19 +189,17 @@ GlobalInput.prototype.onAdded = function () {
 GlobalInput.prototype.onExecute = function () {
   var name = this.properties.name
 
-	// read from global input
-  var	data = this.graph.global_inputs[name]
+// read from global input
+  vardata = this.graph.global_inputs[name]
   if (!data) return
 
-	// put through output
+// put through output
   this.setOutputData(0, data.value)
 }
 
-
-
 // Output for a subgraph
 function GlobalOutput () {
-	// random name to avoid problems with other outputs when added
+// random name to avoid problems with other outputs when added
   var output_name = 'output_' + (Math.random() * 1000).toFixed()
 
   this.addInput(output_name, null)
@@ -250,8 +245,6 @@ GlobalOutput.prototype.onExecute = function () {
   this.graph.setGlobalOutputData(this.properties.name, this.getInputData(0))
 }
 
-
-
 // Constant
 function Constant () {
   this.addOutput('value', 'number')
@@ -273,15 +266,13 @@ Constant.prototype.onExecute = function () {
 }
 
 Constant.prototype.onDrawBackground = function (ctx) {
-	// show the current value
+// show the current value
   this.outputs[0].label = this.properties['value'].toFixed(3)
 }
 
 Constant.prototype.onWidget = function (e, widget) {
   if (widget.name == 'value') { this.setValue(widget.value) }
 }
-
-
 
 // Watch a value in the editor
 function Watch () {
@@ -300,9 +291,9 @@ Watch.prototype.onExecute = function () {
 }
 
 Watch.prototype.onDrawBackground = function (ctx) {
-	// show the current value
-  if (this.inputs[0] && this.properties['value'] != null)	{
-    if (this.properties['value'].constructor === Number) { this.inputs[0].label = this.properties['value'].toFixed(3) } else		{
+// show the current value
+  if (this.inputs[0] && this.properties['value'] != null) {
+    if (this.properties['value'].constructor === Number) { this.inputs[0].label = this.properties['value'].toFixed(3) } else {
       var str = this.properties['value']
       if (str && str.length) // convert typed to array
   { str = Array.prototype.slice.call(str).join(',') }
@@ -310,8 +301,6 @@ Watch.prototype.onDrawBackground = function (ctx) {
     }
   }
 }
-
-
 
 // Show value inside the debug console
 function Console () {
@@ -339,8 +328,6 @@ Console.prototype.onGetInputs = function () {
   return [['log', CONSTANTS.ACTION], ['warn', CONSTANTS.ACTION], ['error', CONSTANTS.ACTION]]
 }
 
-
-
 // Show value inside the debug console
 function NodeScript () {
   this.size = [60, 20]
@@ -361,11 +348,11 @@ NodeScript.widgets_info = {
 }
 
 NodeScript.prototype.onPropertyChanged = function (name, value) {
-  if (name == 'onExecute' && LITEGRAPH.allow_scripts)	{
+  if (name == 'onExecute' && LITEGRAPH.allow_scripts) {
     this._func = null
-    try		{
+    try {
       this._func = new Function(value)
-    }		catch (err)		{
+    } catch (err) {
       console.error('Error parsing script')
       console.error(err)
     }
@@ -375,9 +362,9 @@ NodeScript.prototype.onPropertyChanged = function (name, value) {
 NodeScript.prototype.onExecute = function () {
   if (!this._func) { return }
 
-  try	{
+  try {
     this._func.call(this)
-  }	catch (err)	{
+  } catch (err) {
     console.error('Error in script')
     console.error(err)
   }

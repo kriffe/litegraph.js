@@ -1,15 +1,17 @@
 {
-  "name": "@skymaker/litegraph.js",
-  "version": "0.2.1",
+  "name": "litegraph.js",
+  "version": "1.0.0-1",
   "description": "A graph node editor similar to PD or UDK Blueprints, it works in a HTML5 Canvas and allow to exported graphs to be included in applications.",
-  "main": "build/litegraph.js",
+  "main": "dist/litegraph.js",
   "directories": {
     "doc": "doc"
   },
   "private": false,
   "scripts": {
+    "dev" : "npx webpack -w",
+    "start": "npx nodemon server.js",
     "prebuild": "grunt clean:build",
-    "build": "grunt build",
+    "build": "npx webpack",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -21,6 +23,9 @@
   "bugs": {
     "url": "https://github.com/jagenjo/litegraph.js/issues"
   },
+  "files": [
+    "dist"
+  ],
   "homepage": "https://github.com/kriffe/litegraph.js#readme",
   "devDependencies": {
     "express": "^4.16.2",
@@ -30,6 +35,7 @@
     "grunt-contrib-clean": "^1.1.0",
     "grunt-contrib-concat": "^1.0.1",
     "grunt-contrib-copy": "^1.0.0",
+    "nodemon": "^1.14.3",
     "standard": "^10.0.3",
     "webpack": "^3.10.0"
   }

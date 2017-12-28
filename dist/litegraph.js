@@ -232,16 +232,16 @@ var isValidConnection = function (type_a, type_b) {
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "b", function() { return LGraph; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "f", function() { return createNode; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "g", function() { return registerNodeType; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "e", function() { return allow_scripts; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return LGraph; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "e", function() { return createNode; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "f", function() { return registerNodeType; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "d", function() { return allow_scripts; });
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__LGraphCanvas_js__ = __webpack_require__(4);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__LGraphNode_js__ = __webpack_require__(5);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__MathHelpers_js__ = __webpack_require__(1);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__Constants_js__ = __webpack_require__(0);
-/* harmony reexport (binding) */ __webpack_require__.d(__webpack_exports__, "d", function() { return __WEBPACK_IMPORTED_MODULE_1__LGraphNode_js__["a"]; });
-/* harmony reexport (binding) */ __webpack_require__.d(__webpack_exports__, "c", function() { return __WEBPACK_IMPORTED_MODULE_0__LGraphCanvas_js__["a"]; });
+/* harmony reexport (binding) */ __webpack_require__.d(__webpack_exports__, "c", function() { return __WEBPACK_IMPORTED_MODULE_1__LGraphNode_js__["a"]; });
+/* harmony reexport (binding) */ __webpack_require__.d(__webpack_exports__, "b", function() { return __WEBPACK_IMPORTED_MODULE_0__LGraphCanvas_js__["a"]; });
 // *************************************************************
 //   LiteGraph CLASS                                     *******
 // *************************************************************
@@ -1338,11 +1338,11 @@ if (typeof (window) !== undefined && !window['requestAnimationFrame']) {
 Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__src_litegraph_js__ = __webpack_require__(2);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__src_nodes_base_js__ = __webpack_require__(6);
-/* harmony reexport (binding) */ __webpack_require__.d(__webpack_exports__, "registerNodeType", function() { return __WEBPACK_IMPORTED_MODULE_0__src_litegraph_js__["g"]; });
-/* harmony reexport (binding) */ __webpack_require__.d(__webpack_exports__, "createNode", function() { return __WEBPACK_IMPORTED_MODULE_0__src_litegraph_js__["f"]; });
-/* harmony reexport (binding) */ __webpack_require__.d(__webpack_exports__, "LGraphCanvas", function() { return __WEBPACK_IMPORTED_MODULE_0__src_litegraph_js__["c"]; });
-/* harmony reexport (binding) */ __webpack_require__.d(__webpack_exports__, "LGraphNode", function() { return __WEBPACK_IMPORTED_MODULE_0__src_litegraph_js__["d"]; });
-/* harmony reexport (binding) */ __webpack_require__.d(__webpack_exports__, "LGraph", function() { return __WEBPACK_IMPORTED_MODULE_0__src_litegraph_js__["b"]; });
+/* harmony reexport (binding) */ __webpack_require__.d(__webpack_exports__, "registerNodeType", function() { return __WEBPACK_IMPORTED_MODULE_0__src_litegraph_js__["f"]; });
+/* harmony reexport (binding) */ __webpack_require__.d(__webpack_exports__, "createNode", function() { return __WEBPACK_IMPORTED_MODULE_0__src_litegraph_js__["e"]; });
+/* harmony reexport (binding) */ __webpack_require__.d(__webpack_exports__, "LGraphCanvas", function() { return __WEBPACK_IMPORTED_MODULE_0__src_litegraph_js__["b"]; });
+/* harmony reexport (binding) */ __webpack_require__.d(__webpack_exports__, "LGraphNode", function() { return __WEBPACK_IMPORTED_MODULE_0__src_litegraph_js__["c"]; });
+/* harmony reexport (binding) */ __webpack_require__.d(__webpack_exports__, "LGraph", function() { return __WEBPACK_IMPORTED_MODULE_0__src_litegraph_js__["a"]; });
 
 
 
@@ -1351,14 +1351,14 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 
 // LiteGraph.registerNodeType('events/delay', DelayEvent)
 
-Object(__WEBPACK_IMPORTED_MODULE_0__src_litegraph_js__["g" /* registerNodeType */])('basic/time', __WEBPACK_IMPORTED_MODULE_1__src_nodes_base_js__["g" /* Time */])
-Object(__WEBPACK_IMPORTED_MODULE_0__src_litegraph_js__["g" /* registerNodeType */])('basic/script', __WEBPACK_IMPORTED_MODULE_1__src_nodes_base_js__["e" /* NodeScript */])
-Object(__WEBPACK_IMPORTED_MODULE_0__src_litegraph_js__["g" /* registerNodeType */])('graph/subgraph', __WEBPACK_IMPORTED_MODULE_1__src_nodes_base_js__["f" /* Subgraph */])
-Object(__WEBPACK_IMPORTED_MODULE_0__src_litegraph_js__["g" /* registerNodeType */])('graph/input', __WEBPACK_IMPORTED_MODULE_1__src_nodes_base_js__["c" /* GlobalInput */])
-Object(__WEBPACK_IMPORTED_MODULE_0__src_litegraph_js__["g" /* registerNodeType */])('graph/output', __WEBPACK_IMPORTED_MODULE_1__src_nodes_base_js__["d" /* GlobalOutput */])
-Object(__WEBPACK_IMPORTED_MODULE_0__src_litegraph_js__["g" /* registerNodeType */])('basic/const', __WEBPACK_IMPORTED_MODULE_1__src_nodes_base_js__["b" /* Constant */])
-Object(__WEBPACK_IMPORTED_MODULE_0__src_litegraph_js__["g" /* registerNodeType */])('basic/watch', __WEBPACK_IMPORTED_MODULE_1__src_nodes_base_js__["h" /* Watch */])
-Object(__WEBPACK_IMPORTED_MODULE_0__src_litegraph_js__["g" /* registerNodeType */])('basic/console', __WEBPACK_IMPORTED_MODULE_1__src_nodes_base_js__["a" /* Console */])
+Object(__WEBPACK_IMPORTED_MODULE_0__src_litegraph_js__["f" /* registerNodeType */])('basic/time', __WEBPACK_IMPORTED_MODULE_1__src_nodes_base_js__["g" /* Time */])
+Object(__WEBPACK_IMPORTED_MODULE_0__src_litegraph_js__["f" /* registerNodeType */])('basic/script', __WEBPACK_IMPORTED_MODULE_1__src_nodes_base_js__["e" /* NodeScript */])
+Object(__WEBPACK_IMPORTED_MODULE_0__src_litegraph_js__["f" /* registerNodeType */])('graph/subgraph', __WEBPACK_IMPORTED_MODULE_1__src_nodes_base_js__["f" /* Subgraph */])
+Object(__WEBPACK_IMPORTED_MODULE_0__src_litegraph_js__["f" /* registerNodeType */])('graph/input', __WEBPACK_IMPORTED_MODULE_1__src_nodes_base_js__["c" /* GlobalInput */])
+Object(__WEBPACK_IMPORTED_MODULE_0__src_litegraph_js__["f" /* registerNodeType */])('graph/output', __WEBPACK_IMPORTED_MODULE_1__src_nodes_base_js__["d" /* GlobalOutput */])
+Object(__WEBPACK_IMPORTED_MODULE_0__src_litegraph_js__["f" /* registerNodeType */])('basic/const', __WEBPACK_IMPORTED_MODULE_1__src_nodes_base_js__["b" /* Constant */])
+Object(__WEBPACK_IMPORTED_MODULE_0__src_litegraph_js__["f" /* registerNodeType */])('basic/watch', __WEBPACK_IMPORTED_MODULE_1__src_nodes_base_js__["h" /* Watch */])
+Object(__WEBPACK_IMPORTED_MODULE_0__src_litegraph_js__["f" /* registerNodeType */])('basic/console', __WEBPACK_IMPORTED_MODULE_1__src_nodes_base_js__["a" /* Console */])
 
 
 
@@ -4875,14 +4875,13 @@ LGraphNode.prototype.localToScreen = function (x, y, graphcanvas) {
 
 
 
-
 // import createNode from '../litegraph.js'
 // import LGraph from '../litegraph.js'
 // import LGraphNode from '../litegraph.js'
 
-const createNode = __WEBPACK_IMPORTED_MODULE_0__litegraph_js__["f" /* createNode */]
-const LGraph = __WEBPACK_IMPORTED_MODULE_0__litegraph_js__["b" /* LGraph */]
-const LGraphNode = __WEBPACK_IMPORTED_MODULE_0__litegraph_js__["d" /* LGraphNode */]
+const createNode = __WEBPACK_IMPORTED_MODULE_0__litegraph_js__["e" /* createNode */]
+const LGraph = __WEBPACK_IMPORTED_MODULE_0__litegraph_js__["a" /* LGraph */]
+const LGraphNode = __WEBPACK_IMPORTED_MODULE_0__litegraph_js__["c" /* LGraphNode */]
 
 // basic nodes
 
@@ -4905,7 +4904,7 @@ function Subgraph () {
   var that = this
   this.size = [120, 60]
 
-	// create inner graph
+// create inner graph
   this.subgraph = new LGraph()
   this.subgraph._subgraph_node = this
   this.subgraph._is_subgraph = true
@@ -4925,7 +4924,7 @@ Subgraph.title = 'Subgraph'
 Subgraph.desc = 'Graph inside a node'
 
 Subgraph.prototype.onSubgraphNewGlobalInput = function (name, type) {
-	// add input to the node
+// add input to the node
   this.addInput(name, type)
 }
 
@@ -4944,7 +4943,7 @@ Subgraph.prototype.onSubgraphTypeChangeGlobalInput = function (name, type) {
 }
 
 Subgraph.prototype.onSubgraphNewGlobalOutput = function (name, type) {
-	// add output to the node
+// add output to the node
   this.addOutput(name, type)
 }
 
@@ -4966,28 +4965,28 @@ Subgraph.prototype.getExtraMenuOptions = function (graphcanvas) {
   var that = this
   return [ {content: 'Open',
     callback:
-		function () {
+function () {
   graphcanvas.openSubgraph(that.subgraph)
 }
   }]
 }
 
 Subgraph.prototype.onExecute = function () {
-	// send inputs to subgraph global inputs
+// send inputs to subgraph global inputs
   if (this.inputs) {
-    for (var i = 0; i < this.inputs.length; i++)		{
+    for (var i = 0; i < this.inputs.length; i++) {
       var input = this.inputs[i]
       var value = this.getInputData(i)
       this.subgraph.setGlobalInputData(input.name, value)
     }
   }
 
-	// execute
+// execute
   this.subgraph.runStep()
 
-	// send subgraph global outputs to outputs
+// send subgraph global outputs to outputs
   if (this.outputs) {
-    for (var i = 0; i < this.outputs.length; i++)		{
+    for (var i = 0; i < this.outputs.length; i++) {
       var output = this.outputs[i]
       var value = this.subgraph.getGlobalOutputData(output.name)
       this.setOutputData(i, value)
@@ -4997,7 +4996,7 @@ Subgraph.prototype.onExecute = function () {
 
 Subgraph.prototype.configure = function (o) {
   LGraphNode.prototype.configure.call(this, o)
-	// this.subgraph.configure(o.graph);
+// this.subgraph.configure(o.graph);
 }
 
 Subgraph.prototype.serialize = function () {
@@ -5016,11 +5015,9 @@ Subgraph.prototype.clone = function () {
   return node
 }
 
-
-
 // Input for a subgraph
 function GlobalInput () {
-	// random name to avoid problems with other outputs when added
+// random name to avoid problems with other outputs when added
   var input_name = 'input_' + (Math.random() * 1000).toFixed()
 
   this.addOutput(input_name, null)
@@ -5066,19 +5063,17 @@ GlobalInput.prototype.onAdded = function () {
 GlobalInput.prototype.onExecute = function () {
   var name = this.properties.name
 
-	// read from global input
-  var	data = this.graph.global_inputs[name]
+// read from global input
+  vardata = this.graph.global_inputs[name]
   if (!data) return
 
-	// put through output
+// put through output
   this.setOutputData(0, data.value)
 }
 
-
-
 // Output for a subgraph
 function GlobalOutput () {
-	// random name to avoid problems with other outputs when added
+// random name to avoid problems with other outputs when added
   var output_name = 'output_' + (Math.random() * 1000).toFixed()
 
   this.addInput(output_name, null)
@@ -5124,8 +5119,6 @@ GlobalOutput.prototype.onExecute = function () {
   this.graph.setGlobalOutputData(this.properties.name, this.getInputData(0))
 }
 
-
-
 // Constant
 function Constant () {
   this.addOutput('value', 'number')
@@ -5147,15 +5140,13 @@ Constant.prototype.onExecute = function () {
 }
 
 Constant.prototype.onDrawBackground = function (ctx) {
-	// show the current value
+// show the current value
   this.outputs[0].label = this.properties['value'].toFixed(3)
 }
 
 Constant.prototype.onWidget = function (e, widget) {
   if (widget.name == 'value') { this.setValue(widget.value) }
 }
-
-
 
 // Watch a value in the editor
 function Watch () {
@@ -5174,9 +5165,9 @@ Watch.prototype.onExecute = function () {
 }
 
 Watch.prototype.onDrawBackground = function (ctx) {
-	// show the current value
-  if (this.inputs[0] && this.properties['value'] != null)	{
-    if (this.properties['value'].constructor === Number) { this.inputs[0].label = this.properties['value'].toFixed(3) } else		{
+// show the current value
+  if (this.inputs[0] && this.properties['value'] != null) {
+    if (this.properties['value'].constructor === Number) { this.inputs[0].label = this.properties['value'].toFixed(3) } else {
       var str = this.properties['value']
       if (str && str.length) // convert typed to array
   { str = Array.prototype.slice.call(str).join(',') }
@@ -5184,8 +5175,6 @@ Watch.prototype.onDrawBackground = function (ctx) {
     }
   }
 }
-
-
 
 // Show value inside the debug console
 function Console () {
@@ -5210,10 +5199,8 @@ Console.prototype.onExecute = function () {
 }
 
 Console.prototype.onGetInputs = function () {
-  return [['log', __WEBPACK_IMPORTED_MODULE_0__litegraph_js__["ACTION"]], ['warn', __WEBPACK_IMPORTED_MODULE_0__litegraph_js__["ACTION"]], ['error', __WEBPACK_IMPORTED_MODULE_0__litegraph_js__["ACTION"]]]
+  return [['log', __WEBPACK_IMPORTED_MODULE_1__Constants_js__["a" /* CONSTANTS */].ACTION], ['warn', __WEBPACK_IMPORTED_MODULE_1__Constants_js__["a" /* CONSTANTS */].ACTION], ['error', __WEBPACK_IMPORTED_MODULE_1__Constants_js__["a" /* CONSTANTS */].ACTION]]
 }
-
-
 
 // Show value inside the debug console
 function NodeScript () {
@@ -5235,11 +5222,11 @@ NodeScript.widgets_info = {
 }
 
 NodeScript.prototype.onPropertyChanged = function (name, value) {
-  if (name == 'onExecute' && __WEBPACK_IMPORTED_MODULE_0__litegraph_js__["e" /* allow_scripts */])	{
+  if (name == 'onExecute' && __WEBPACK_IMPORTED_MODULE_0__litegraph_js__["d" /* allow_scripts */]) {
     this._func = null
-    try		{
+    try {
       this._func = new Function(value)
-    }		catch (err)		{
+    } catch (err) {
       console.error('Error parsing script')
       console.error(err)
     }
@@ -5249,9 +5236,9 @@ NodeScript.prototype.onPropertyChanged = function (name, value) {
 NodeScript.prototype.onExecute = function () {
   if (!this._func) { return }
 
-  try	{
+  try {
     this._func.call(this)
-  }	catch (err)	{
+  } catch (err) {
     console.error('Error in script')
     console.error(err)
   }
