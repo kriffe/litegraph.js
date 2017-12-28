@@ -234,10 +234,12 @@ var isValidConnection = function (type_a, type_b) {
 "use strict";
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return LGraph; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "e", function() { return createNode; });
+/* unused harmony export getNodeType */
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "f", function() { return registerNodeType; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "d", function() { return allow_scripts; });
+/* unused harmony export getNodeTypesCategories */
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__LGraphCanvas_js__ = __webpack_require__(4);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__LGraphNode_js__ = __webpack_require__(5);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__LGraphNode_js__ = __webpack_require__(6);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__MathHelpers_js__ = __webpack_require__(1);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__Constants_js__ = __webpack_require__(0);
 /* harmony reexport (binding) */ __webpack_require__.d(__webpack_exports__, "c", function() { return __WEBPACK_IMPORTED_MODULE_1__LGraphNode_js__["a"]; });
@@ -269,7 +271,6 @@ var isValidConnection = function (type_a, type_b) {
 * @class LiteGraph
 * @constructor
 */
-
 
 const proxy = null // used to redirect calls
 
@@ -303,8 +304,7 @@ var registerNodeType = function (type, baseClass) {
 // info.name = name.substr(pos+1,name.length - pos);
 
 // extend class
-  if (baseClass.prototype) // is a class
-      {
+  if (baseClass.prototype) {  // is a class
     for (var i in __WEBPACK_IMPORTED_MODULE_1__LGraphNode_js__["a" /* LGraphNode */].prototype) {
       if (!baseClass.prototype[i]) { baseClass.prototype[i] = __WEBPACK_IMPORTED_MODULE_1__LGraphNode_js__["a" /* LGraphNode */].prototype[i] }
     }
@@ -350,11 +350,9 @@ var createNode = function (type, title, options) {
     return null
   }
 
-  var prototype = BaseClass.prototype || BaseClass
-
   title = title || BaseClass.title || type
 
-  var node = new BaseClass(name)
+  var node = new BaseClass(title)
   node.type = type
 
   if (!node.title) node.title = title
@@ -418,35 +416,35 @@ var getNodeTypesCategories = function () {
   return result
 }
 
-// debug purposes: reloads all the js scripts that matches a wilcard
-var reloadNodes = function (folder_wildcard) {
-  var tmp = document.getElementsByTagName('script')
-// weird, this array changes by its own, so we use a copy
-  var script_files = []
-  for (var i in tmp) { script_files.push(tmp[i]) }
+// // debug purposes: reloads all the js scripts that matches a wilcard
+// var reloadNodes = function (folder_wildcard) {
+//   var tmp = document.getElementsByTagName('script')
+// // weird, this array changes by its own, so we use a copy
+//   var script_files = []
+//   for (var i in tmp) { script_files.push(tmp[i]) }
 
-  var docHeadObj = document.getElementsByTagName('head')[0]
-  folder_wildcard = document.location.href + folder_wildcard
+//   var docHeadObj = document.getElementsByTagName('head')[0]
+//   folder_wildcard = document.location.href + folder_wildcard
 
-  for (var i in script_files) {
-    var src = script_files[i].src
-    if (!src || src.substr(0, folder_wildcard.length) != folder_wildcard) { continue }
+//   for (var i in script_files) {
+//     var src = script_files[i].src
+//     if (!src || src.substr(0, folder_wildcard.length) != folder_wildcard) { continue }
 
-    try {
-      if (debug) { console.log('Reloading: ' + src) }
-      var dynamicScript = document.createElement('script')
-      dynamicScript.type = 'text/javascript'
-      dynamicScript.src = src
-      docHeadObj.appendChild(dynamicScript)
-      docHeadObj.removeChild(script_files[i])
-    } catch (err) {
-      if (throw_errors) { throw err }
-      if (debug) { console.log('Error while reloading ' + src) }
-    }
-  }
+//     try {
+//       if (debug) { console.log('Reloading: ' + src) }
+//       var dynamicScript = document.createElement('script')
+//       dynamicScript.type = 'text/javascript'
+//       dynamicScript.src = src
+//       docHeadObj.appendChild(dynamicScript)
+//       docHeadObj.removeChild(script_files[i])
+//     } catch (err) {
+//       if (throw_errors) { throw err }
+//       if (debug) { console.log('Error while reloading ' + src) }
+//     }
+//   }
 
-  if (debug) { console.log('Nodes reloaded') }
-}
+//   if (debug) { console.log('Nodes reloaded') }
+// }
 
 
 // *************************************************************
@@ -572,12 +570,13 @@ LGraph.prototype.clear = function () {
 */
 
 LGraph.prototype.attachCanvas = function (graphcanvas) {
-  if (graphcanvas.constructor !== __WEBPACK_IMPORTED_MODULE_0__LGraphCanvas_js__["a" /* LGraphCanvas */]) { throw new Error('attachCanvas expects a LGraphCanvas instance') }
-  if (graphcanvas.graph && graphcanvas.graph !== this) { graphcanvas.graph.detachCanvas(graphcanvas) }
+  console.warn('DEPRECATED')
+  // if (graphcanvas.constructor !== LGraphCanvas) { throw new Error('attachCanvas expects a LGraphCanvas instance') }
+  // if (graphcanvas.graph && graphcanvas.graph !== this) { graphcanvas.graph.detachCanvas(graphcanvas) }
 
-  graphcanvas.graph = this
-  if (!this.list_of_graphcanvas) { this.list_of_graphcanvas = [] }
-  this.list_of_graphcanvas.push(graphcanvas)
+  // graphcanvas.graph = this
+  // if (!this.list_of_graphcanvas) { this.list_of_graphcanvas = [] }
+  // this.list_of_graphcanvas.push(graphcanvas)
 }
 
 /**
@@ -587,12 +586,13 @@ LGraph.prototype.attachCanvas = function (graphcanvas) {
 */
 
 LGraph.prototype.detachCanvas = function (graphcanvas) {
-  if (!this.list_of_graphcanvas) { return }
+  console.warn('DEPRECATED')
+  // if (!this.list_of_graphcanvas) { return }
 
-  var pos = this.list_of_graphcanvas.indexOf(graphcanvas)
-  if (pos == -1) { return }
-  graphcanvas.graph = null
-  this.list_of_graphcanvas.splice(pos, 1)
+  // var pos = this.list_of_graphcanvas.indexOf(graphcanvas)
+  // if (pos == -1) { return }
+  // graphcanvas.graph = null
+  // this.list_of_graphcanvas.splice(pos, 1)
 }
 
 /**
@@ -931,7 +931,7 @@ LGraph.prototype.remove = function (node) {
 
 // remove from containers
   var pos = this._nodes.indexOf(node)
-  if (pos != -1) { this._nodes.splice(pos, 1) }
+  if (pos !== -1) { this._nodes.splice(pos, 1) }
   delete this._nodes_by_id[node.id]
 
   if (this.onNodeRemoved) { this.onNodeRemoved(node) }
@@ -1045,7 +1045,7 @@ LGraph.prototype.getGlobalInputData = function (name) {
 
 // rename the global input
 LGraph.prototype.renameGlobalInput = function (old_name, name) {
-  if (name == old_name) { return }
+  if (name === old_name) { return }
 
   if (!this.global_inputs[old_name]) { return false }
 
@@ -1317,8 +1317,7 @@ LGraph.prototype.onNodeTrace = function (node, msg, color) {
 // TODO
 }
 
-
-if (typeof (window) !== undefined && !window['requestAnimationFrame']) {
+if (window !== undefined && !window['requestAnimationFrame']) {
   window.requestAnimationFrame = window.webkitRequestAnimationFrame ||
   window.mozRequestAnimationFrame ||
   function (callback) {
@@ -1337,7 +1336,7 @@ if (typeof (window) !== undefined && !window['requestAnimationFrame']) {
 "use strict";
 Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__src_litegraph_js__ = __webpack_require__(2);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__src_nodes_base_js__ = __webpack_require__(6);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__src_nodes_base_js__ = __webpack_require__(7);
 /* harmony reexport (binding) */ __webpack_require__.d(__webpack_exports__, "registerNodeType", function() { return __WEBPACK_IMPORTED_MODULE_0__src_litegraph_js__["f"]; });
 /* harmony reexport (binding) */ __webpack_require__.d(__webpack_exports__, "createNode", function() { return __WEBPACK_IMPORTED_MODULE_0__src_litegraph_js__["e"]; });
 /* harmony reexport (binding) */ __webpack_require__.d(__webpack_exports__, "LGraphCanvas", function() { return __WEBPACK_IMPORTED_MODULE_0__src_litegraph_js__["b"]; });
@@ -1370,7 +1369,9 @@ Object(__WEBPACK_IMPORTED_MODULE_0__src_litegraph_js__["f" /* registerNodeType *
 "use strict";
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return LGraphCanvas; });
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__Constants_js__ = __webpack_require__(0);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__MathHelpers_js__ = __webpack_require__(1);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__ContextMenu_js__ = __webpack_require__(5);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__MathHelpers_js__ = __webpack_require__(1);
+
 
 
 
@@ -1425,7 +1426,11 @@ var LGraphCanvas = function (canvas, graph, options) {
   this.connections_width = 3
 
 // link canvas and graph
-  if (graph) { graph.attachCanvas(this) }
+  // this.graph = graph        // ToDo: Deprecate
+
+  // this._graph_stack = []    // ToDo: Depreacate
+  this.graphStack = [graph]    //* Stack of graphs and sub graphs. Last item is active
+  // if (graph) { graph.attachCanvas(this) }
 
   this.setCanvas(canvas)
   this.clear()
@@ -1476,24 +1481,18 @@ LGraphCanvas.prototype.clear = function () {
 * @method setGraph
 * @param {LGraph} graph
 */
-LGraphCanvas.prototype.setGraph = function (graph, skip_clear) {
-  if (this.graph == graph) { return }
+LGraphCanvas.prototype.setGraph = function (newGraph, skip_clear) {
+  var graph = this.getGraph()
+  if (graph == newGraph) { return }
 
   if (!skip_clear) { this.clear() }
 
-  if (!graph && this.graph) {
-    this.graph.detachCanvas(this)
-    return
-  }
+  // if (!newGraph) {
+  //   graph.detachCanvas(this)
+  //   return
+  // }
 
-/*
-if(this.graph)
-this.graph.canvas = null; //remove old graph link to the canvas
-this.graph = graph;
-if(this.graph)
-this.graph.canvas = this;
-*/
-  graph.attachCanvas(this)
+  // newGraph.attachCanvas(this)
   this.setDirty(true, true)
 }
 
@@ -1504,18 +1503,19 @@ this.graph.canvas = this;
 * @param {LGraph} graph
 */
 LGraphCanvas.prototype.openSubgraph = function (graph) {
-  if (!graph) { throw ('graph cannot be null') }
+  if (!graph) { throw new Error('graph cannot be null') }
 
-  if (this.graph == graph) { throw ('graph cannot be the same') }
+  // if (this.graph == graph) { throw ('graph cannot be the same') }
 
   this.clear()
 
-  if (this.graph) {
-    if (!this._graph_stack) { this._graph_stack = [] }
-    this._graph_stack.push(this.graph)
-  }
+  this.graphStack.push(graph)
+  // if (this.graph) {
+  //   if (!this._graph_stack) { this._graph_stack = [] }
+  //   this._graph_stack.push(this.graph)
+  // }
 
-  graph.attachCanvas(this)
+  // graph.attachCanvas(this)
   this.setDirty(true, true)
 }
 
@@ -1526,9 +1526,12 @@ LGraphCanvas.prototype.openSubgraph = function (graph) {
 * @param {LGraph} assigns a graph
 */
 LGraphCanvas.prototype.closeSubgraph = function () {
-  if (!this._graph_stack || this._graph_stack.length == 0) { return }
-  var graph = this._graph_stack.pop()
-  graph.attachCanvas(this)
+  // if (!this._graph_stack || this._graph_stack.length === 0) { return }
+  // var graph = this._graph_stack.pop()
+  if (this.graphStack.length > 1) {
+    this.graphStack.pop()
+  }
+  // graph.attachCanvas(this)
   this.setDirty(true, true)
 }
 
@@ -1544,7 +1547,7 @@ LGraphCanvas.prototype.setCanvas = function (canvas, skip_events) {
   if (canvas) {
     if (canvas.constructor === String) {
       canvas = document.getElementById(canvas)
-      if (!canvas) { throw ('Error creating LiteGraph canvas: Canvas not found') }
+      if (!canvas) { throw new Error('Error creating LiteGraph canvas: Canvas not found') }
     }
   }
 
@@ -1573,7 +1576,7 @@ LGraphCanvas.prototype.setCanvas = function (canvas, skip_events) {
 
   if (canvas.getContext == null) {
     if (canvas.localName != 'canvas') { throw ('Element supplied for LGraphCanvas must be a <canvas> element, you passed a ' + canvas.localName) }
-    throw ('This browser doesnt support Canvas')
+    throw new Error('This browser doesnt support Canvas')
   }
 
   var ctx = this.ctx = canvas.getContext('2d')
@@ -1800,31 +1803,40 @@ this.rendering_timer_id = null;
 */
 }
 
-/* LiteGraphCanvas input */
+/**
+ * @returns {LGraph}
+ */
+LGraphCanvas.prototype.getGraph = function () {
+  var lastElementIndex = this.graphStack.length - 1
+  if (lastElementIndex >= 0) {
+    return this.graphStack[lastElementIndex]
+  } else {
+    return undefined
+  }
+}
 
 LGraphCanvas.prototype.processMouseDown = function (e) {
-  if (!this.graph) { return }
+  var graph = this.getGraph()
+  if (!graph) { return }
 
   this.adjustMouseEvent(e)
 
   var ref_window = this.getCanvasWindow()
   var document = ref_window.document
-  LGraphCanvas.active_canvas = this
+  LGraphCanvas.active_canvas = this     //ToDo: Store inside graph instead? Move all global functions to prototype
 
 // move mouse move event to the window in case it drags outside of the canvas
   this.canvas.removeEventListener('mousemove', this._mousemove_callback)
   ref_window.document.addEventListener('mousemove', this._mousemove_callback, true) // catch for the entire window
   ref_window.document.addEventListener('mouseup', this._mouseup_callback, true)
 
-  var n = this.graph.getNodeOnPos(e.canvasX, e.canvasY, this.visible_nodes)
+  var n = graph.getNodeOnPos(e.canvasX, e.canvasY, this.visible_nodes)
   var skip_dragging = false
 
   closeAllContextMenus(ref_window)
 
-  if (e.which == 1) // left button mouse
-{
-    if (!e.shiftKey) // REFACTOR: integrate with function
-{
+  if (e.which === 1) { // left button mouse
+    if (!e.shiftKey) { // REFACTOR: integrate with function
           // no node or another node selected
       if (!n || !this.selected_nodes[n.id]) {
         var todeselect = []
@@ -1850,7 +1862,7 @@ LGraphCanvas.prototype.processMouseDown = function (e) {
           for (var i = 0, l = n.outputs.length; i < l; ++i) {
             var output = n.outputs[i]
             var link_pos = n.getConnectionPos(false, i)
-            if (Object(__WEBPACK_IMPORTED_MODULE_1__MathHelpers_js__["d" /* isInsideRectangle */])(e.canvasX, e.canvasY, link_pos[0] - 10, link_pos[1] - 5, 20, 10)) {
+            if (Object(__WEBPACK_IMPORTED_MODULE_2__MathHelpers_js__["d" /* isInsideRectangle */])(e.canvasX, e.canvasY, link_pos[0] - 10, link_pos[1] - 5, 20, 10)) {
               this.connecting_node = n
               this.connecting_output = output
               this.connecting_pos = n.getConnectionPos(false, i)
@@ -1867,7 +1879,7 @@ LGraphCanvas.prototype.processMouseDown = function (e) {
           for (var i = 0, l = n.inputs.length; i < l; ++i) {
             var input = n.inputs[i]
             var link_pos = n.getConnectionPos(true, i)
-            if (Object(__WEBPACK_IMPORTED_MODULE_1__MathHelpers_js__["d" /* isInsideRectangle */])(e.canvasX, e.canvasY, link_pos[0] - 10, link_pos[1] - 5, 20, 10)) {
+            if (Object(__WEBPACK_IMPORTED_MODULE_2__MathHelpers_js__["d" /* isInsideRectangle */])(e.canvasX, e.canvasY, link_pos[0] - 10, link_pos[1] - 5, 20, 10)) {
               if (input.link !== null) {
                 n.disconnectInput(i)
                 this.dirty_bgcanvas = true
@@ -1878,7 +1890,7 @@ LGraphCanvas.prototype.processMouseDown = function (e) {
         }
 
 // Search for corner
-        if (!skip_action && Object(__WEBPACK_IMPORTED_MODULE_1__MathHelpers_js__["d" /* isInsideRectangle */])(e.canvasX, e.canvasY, n.pos[0] + n.size[0] - 5, n.pos[1] + n.size[1] - 5, 5, 5)) {
+        if (!skip_action && Object(__WEBPACK_IMPORTED_MODULE_2__MathHelpers_js__["d" /* isInsideRectangle */])(e.canvasX, e.canvasY, n.pos[0] + n.size[0] - 5, n.pos[1] + n.size[1] - 5, 5, 5)) {
           this.resizing_node = n
           this.canvas.style.cursor = 'se-resize'
           skip_action = true
@@ -1886,7 +1898,7 @@ LGraphCanvas.prototype.processMouseDown = function (e) {
       }
 
 // Search for corner
-      if (!skip_action && Object(__WEBPACK_IMPORTED_MODULE_1__MathHelpers_js__["d" /* isInsideRectangle */])(e.canvasX, e.canvasY, n.pos[0], n.pos[1] - __WEBPACK_IMPORTED_MODULE_0__Constants_js__["a" /* CONSTANTS */].NODE_TITLE_HEIGHT, __WEBPACK_IMPORTED_MODULE_0__Constants_js__["a" /* CONSTANTS */].NODE_TITLE_HEIGHT, __WEBPACK_IMPORTED_MODULE_0__Constants_js__["a" /* CONSTANTS */].NODE_TITLE_HEIGHT)) {
+      if (!skip_action && Object(__WEBPACK_IMPORTED_MODULE_2__MathHelpers_js__["d" /* isInsideRectangle */])(e.canvasX, e.canvasY, n.pos[0], n.pos[1] - __WEBPACK_IMPORTED_MODULE_0__Constants_js__["a" /* CONSTANTS */].NODE_TITLE_HEIGHT, __WEBPACK_IMPORTED_MODULE_0__Constants_js__["a" /* CONSTANTS */].NODE_TITLE_HEIGHT, __WEBPACK_IMPORTED_MODULE_0__Constants_js__["a" /* CONSTANTS */].NODE_TITLE_HEIGHT)) {
         n.collapse()
         skip_action = true
       }
@@ -1896,7 +1908,7 @@ LGraphCanvas.prototype.processMouseDown = function (e) {
         var block_drag_node = false
 
 // double clicking
-        var now = Object(__WEBPACK_IMPORTED_MODULE_1__MathHelpers_js__["c" /* getTime */])()
+        var now = Object(__WEBPACK_IMPORTED_MODULE_2__MathHelpers_js__["c" /* getTime */])()
         if ((now - this.last_mouseclick) < 300 && this.selected_nodes[n.id]) {
 // double click node
           if (n.onDblClick) { n.onDblClick(e) }
@@ -1938,7 +1950,7 @@ LGraphCanvas.prototype.processMouseDown = function (e) {
 
   this.last_mouse[0] = e.localX
   this.last_mouse[1] = e.localY
-  this.last_mouseclick = Object(__WEBPACK_IMPORTED_MODULE_1__MathHelpers_js__["c" /* getTime */])()
+  this.last_mouseclick = Object(__WEBPACK_IMPORTED_MODULE_2__MathHelpers_js__["c" /* getTime */])()
   this.canvas_mouse = [e.canvasX, e.canvasY]
 
 /*
@@ -1946,7 +1958,7 @@ if( (this.dirty_canvas || this.dirty_bgcanvas) && this.rendering_timer_id == nul
 this.draw();
 */
 
-  this.graph.change()
+  graph.change()
 
 // this is to ensure to defocus(blur) if a text input element is on focus
   if (!ref_window.document.activeElement || (ref_window.document.activeElement.nodeName.toLowerCase() != 'input' && ref_window.document.activeElement.nodeName.toLowerCase() != 'textarea')) { e.preventDefault() }
@@ -1958,9 +1970,10 @@ this.draw();
 }
 
 LGraphCanvas.prototype.processMouseMove = function (e) {
+  var graph = this.getGraph()
   if (this.autoresize) { this.resize() }
 
-  if (!this.graph) { return }
+  if (!graph) { return }
 
   LGraphCanvas.active_canvas = this
   this.adjustMouseEvent(e)
@@ -1978,24 +1991,24 @@ LGraphCanvas.prototype.processMouseMove = function (e) {
     if (this.connecting_node) { this.dirty_canvas = true }
 
 // get node over
-    var n = this.graph.getNodeOnPos(e.canvasX, e.canvasY, this.visible_nodes)
+    var n = graph.getNodeOnPos(e.canvasX, e.canvasY, this.visible_nodes)
 
 // remove mouseover flag
-    for (var i = 0, l = this.graph._nodes.length; i < l; ++i) {
-      if (this.graph._nodes[i].mouseOver && n != this.graph._nodes[i]) {
+    for (var i = 0, l = graph._nodes.length; i < l; ++i) {
+      if (graph._nodes[i].mouseOver && n != graph._nodes[i]) {
 // mouse leave
-        this.graph._nodes[i].mouseOver = false
+        graph._nodes[i].mouseOver = false
         if (this.node_over && this.node_over.onMouseLeave) { this.node_over.onMouseLeave(e) }
         this.node_over = null
         this.dirty_canvas = true
       }
     }
 
-// mouse over a node
+    // mouse over a node
     if (n) {
-// this.canvas.style.cursor = "move";
+      // this.canvas.style.cursor = "move";
       if (!n.mouseOver) {
-// mouse enter
+        // mouse enter
         n.mouseOver = true
         this.node_over = n
         this.dirty_canvas = true
@@ -2015,13 +2028,13 @@ LGraphCanvas.prototype.processMouseMove = function (e) {
           var slot = this.isOverNodeInput(n, e.canvasX, e.canvasY, pos)
           if (slot != -1 && n.inputs[slot]) {
             var slot_type = n.inputs[slot].type
-            if (Object(__WEBPACK_IMPORTED_MODULE_1__MathHelpers_js__["e" /* isValidConnection */])(this.connecting_output.type, slot_type)) { this._highlight_input = pos }
+            if (Object(__WEBPACK_IMPORTED_MODULE_2__MathHelpers_js__["e" /* isValidConnection */])(this.connecting_output.type, slot_type)) { this._highlight_input = pos }
           } else { this._highlight_input = null }
         }
       }
 
 // Search for corner
-      if (Object(__WEBPACK_IMPORTED_MODULE_1__MathHelpers_js__["d" /* isInsideRectangle */])(e.canvasX, e.canvasY, n.pos[0] + n.size[0] - 5, n.pos[1] + n.size[1] - 5, 5, 5)) { this.canvas.style.cursor = 'se-resize' } else { this.canvas.style.cursor = null }
+      if (Object(__WEBPACK_IMPORTED_MODULE_2__MathHelpers_js__["d" /* isInsideRectangle */])(e.canvasX, e.canvasY, n.pos[0] + n.size[0] - 5, n.pos[1] + n.size[1] - 5, 5, 5)) { this.canvas.style.cursor = 'se-resize' } else { this.canvas.style.cursor = null }
     } else { this.canvas.style.cursor = null }
 
     if (this.node_capturing_input && this.node_capturing_input != n && this.node_capturing_input.onMouseMove) {
@@ -2075,7 +2088,8 @@ this.draw();
 }
 
 LGraphCanvas.prototype.processMouseUp = function (e) {
-  if (!this.graph) { return }
+  var graph = this.getGraph()
+  if (!graph) { return }
 
   var window = this.getCanvasWindow()
   var document = window.document
@@ -2095,7 +2109,7 @@ LGraphCanvas.prototype.processMouseUp = function (e) {
       this.dirty_canvas = true
       this.dirty_bgcanvas = true
 
-      var node = this.graph.getNodeOnPos(e.canvasX, e.canvasY, this.visible_nodes)
+      var node = graph.getNodeOnPos(e.canvasX, e.canvasY, this.visible_nodes)
 
 // node below mouse
       if (node) {
@@ -2131,7 +2145,7 @@ if (input && !input.link && input.type == this.connecting_output.type) // toLowe
       this.dirty_bgcanvas = true
       this.node_dragged.pos[0] = Math.round(this.node_dragged.pos[0])
       this.node_dragged.pos[1] = Math.round(this.node_dragged.pos[1])
-      if (this.graph.config.align_to_grid) { this.node_dragged.alignToGrid() }
+      if (graph.config.align_to_grid) { this.node_dragged.alignToGrid() }
       this.node_dragged = null
     } else // no node being dragged
 {
@@ -2158,7 +2172,7 @@ if((this.dirty_canvas || this.dirty_bgcanvas) && this.rendering_timer_id == null
 this.draw();
 */
 
-  this.graph.change()
+  graph.change()
 
   e.stopPropagation()
   e.preventDefault()
@@ -2166,7 +2180,8 @@ this.draw();
 }
 
 LGraphCanvas.prototype.processMouseWheel = function (e) {
-  if (!this.graph || !this.allow_dragcanvas) { return }
+  var graph = this.getGraph()
+  if (!graph || !this.allow_dragcanvas) { return }
 
   var delta = (e.wheelDeltaY != null ? e.wheelDeltaY : e.detail * -60)
 
@@ -2183,7 +2198,7 @@ if(this.rendering_timer_id == null)
 this.draw();
 */
 
-  this.graph.change()
+  graph.change()
 
   e.preventDefault()
   return false // prevent default
@@ -2191,7 +2206,7 @@ this.draw();
 
 LGraphCanvas.prototype.isOverNodeBox = function (node, canvasx, canvasy) {
   var title_height = __WEBPACK_IMPORTED_MODULE_0__Constants_js__["a" /* CONSTANTS */].NODE_TITLE_HEIGHT
-  if (Object(__WEBPACK_IMPORTED_MODULE_1__MathHelpers_js__["d" /* isInsideRectangle */])(canvasx, canvasy, node.pos[0] + 2, node.pos[1] + 2 - title_height, title_height - 4, title_height - 4)) { return true }
+  if (Object(__WEBPACK_IMPORTED_MODULE_2__MathHelpers_js__["d" /* isInsideRectangle */])(canvasx, canvasy, node.pos[0] + 2, node.pos[1] + 2 - title_height, title_height - 4, title_height - 4)) { return true }
   return false
 }
 
@@ -2200,7 +2215,7 @@ LGraphCanvas.prototype.isOverNodeInput = function (node, canvasx, canvasy, slot_
     for (var i = 0, l = node.inputs.length; i < l; ++i) {
       var input = node.inputs[i]
       var link_pos = node.getConnectionPos(true, i)
-      if (Object(__WEBPACK_IMPORTED_MODULE_1__MathHelpers_js__["d" /* isInsideRectangle */])(canvasx, canvasy, link_pos[0] - 10, link_pos[1] - 5, 20, 10)) {
+      if (Object(__WEBPACK_IMPORTED_MODULE_2__MathHelpers_js__["d" /* isInsideRectangle */])(canvasx, canvasy, link_pos[0] - 10, link_pos[1] - 5, 20, 10)) {
         if (slot_pos) {
           slot_pos[0] = link_pos[0]
           slot_pos[1] = link_pos[1]
@@ -2213,7 +2228,8 @@ LGraphCanvas.prototype.isOverNodeInput = function (node, canvasx, canvasy, slot_
 }
 
 LGraphCanvas.prototype.processKey = function (e) {
-  if (!this.graph) { return }
+  var graph = this.getGraph()
+  if (!graph) { return }
 
   var block_default = false
 
@@ -2247,7 +2263,7 @@ LGraphCanvas.prototype.processKey = function (e) {
     }
   }
 
-  this.graph.change()
+  graph.change()
 
   if (block_default) {
     e.preventDefault()
@@ -2256,11 +2272,12 @@ LGraphCanvas.prototype.processKey = function (e) {
 }
 
 LGraphCanvas.prototype.processDrop = function (e) {
+  var graph = this.getGraph()
   e.preventDefault()
   this.adjustMouseEvent(e)
 
   var pos = [e.canvasX, e.canvasY]
-  var node = this.graph.getNodeOnPos(pos[0], pos[1])
+  var node = graph.getNodeOnPos(pos[0], pos[1])
 
   if (!node) {
     var r = null
@@ -2308,6 +2325,7 @@ LGraphCanvas.prototype.processDrop = function (e) {
 
 // called if the graph doesnt have a default drop item behaviour
 LGraphCanvas.prototype.checkDropItem = function (e) {
+  var graph = this.getGraph()
   if (e.dataTransfer.files.length) {
     var file = e.dataTransfer.files[0]
     var ext = LGraphCanvas.getFileExtension(file.name).toLowerCase()
@@ -2315,7 +2333,7 @@ LGraphCanvas.prototype.checkDropItem = function (e) {
     if (nodetype) {
       var node = createNode(nodetype.type)
       node.pos = [e.canvasX, e.canvasY]
-      this.graph.add(node)
+      graph.add(node)
       if (node.onDropFile) { node.onDropFile(file) }
     }
   }
@@ -2369,11 +2387,12 @@ LGraphCanvas.prototype.selectNode = function (node) {
 }
 
 LGraphCanvas.prototype.selectAllNodes = function () {
-  for (var i = 0; i < this.graph._nodes.length; ++i) {
-    var n = this.graph._nodes[i]
+  var graph = this.getGraph()
+  for (var i = 0; i < graph._nodes.length; ++i) {
+    var n = graph._nodes[i]
     if (!n.selected && n.onSelected) { n.onSelected() }
     n.selected = true
-    this.selected_nodes[this.graph._nodes[i].id] = n
+    this.selected_nodes[graph._nodes[i].id] = n
   }
 
   this.setDirty(true)
@@ -2390,10 +2409,11 @@ LGraphCanvas.prototype.deselectAllNodes = function () {
 }
 
 LGraphCanvas.prototype.deleteSelectedNodes = function () {
+  var graph = this.getGraph()
   for (var i in this.selected_nodes) {
     var m = this.selected_nodes[i]
 // if(m == this.node_in_panel) this.showNodePanel(null);
-    this.graph.remove(m)
+    graph.remove(m)
   }
   this.selected_nodes = {}
   this.setDirty(true)
@@ -2448,19 +2468,21 @@ LGraphCanvas.prototype.convertEventToCanvas = function (e) {
 }
 
 LGraphCanvas.prototype.bringToFront = function (n) {
-  var i = this.graph._nodes.indexOf(n)
+  var graph = this.getGraph()
+  var i = graph._nodes.indexOf(n)
   if (i == -1) return
 
-  this.graph._nodes.splice(i, 1)
-  this.graph._nodes.push(n)
+  graph._nodes.splice(i, 1)
+  graph._nodes.push(n)
 }
 
 LGraphCanvas.prototype.sendToBack = function (n) {
-  var i = this.graph._nodes.indexOf(n)
-  if (i == -1) return
+  var graph = this.getGraph()
+  var i = graph._nodes.indexOf(n)
+  if (i === -1) return
 
-  this.graph._nodes.splice(i, 1)
-  this.graph._nodes.unshift(n)
+  graph._nodes.splice(i, 1)
+  graph._nodes.unshift(n)
 }
 
 /* Interaction */
@@ -2468,14 +2490,15 @@ LGraphCanvas.prototype.sendToBack = function (n) {
 /* LGraphCanvas render */
 
 LGraphCanvas.prototype.computeVisibleNodes = function () {
+  var graph = this.getGraph()
   var visible_nodes = []
-  for (var i = 0, l = this.graph._nodes.length; i < l; ++i) {
-    var n = this.graph._nodes[i]
+  for (var i = 0, l = graph._nodes.length; i < l; ++i) {
+    var n = graph._nodes[i]
 
 // skip rendering nodes in live mode
     if (this.live_mode && !n.onDrawBackground && !n.onDrawForeground) { continue }
 
-    if (!Object(__WEBPACK_IMPORTED_MODULE_1__MathHelpers_js__["f" /* overlapBounding */])(this.visible_area, n.getBounding())) { continue } // out of the visible area
+    if (!Object(__WEBPACK_IMPORTED_MODULE_2__MathHelpers_js__["f" /* overlapBounding */])(this.visible_area, n.getBounding())) { continue } // out of the visible area
 
     visible_nodes.push(n)
   }
@@ -2486,17 +2509,17 @@ LGraphCanvas.prototype.draw = function (force_canvas, force_bgcanvas) {
   if (!this.canvas) { return }
 
 // fps counting
-  var now = Object(__WEBPACK_IMPORTED_MODULE_1__MathHelpers_js__["c" /* getTime */])()
+  var now = Object(__WEBPACK_IMPORTED_MODULE_2__MathHelpers_js__["c" /* getTime */])()
   this.render_time = (now - this.last_draw_time) * 0.001
   this.last_draw_time = now
-
-  if (this.graph) {
+  var graph = this.getGraph()
+  if (graph) {
     var start = [-this.offset[0], -this.offset[1] ]
     var end = [start[0] + this.canvas.width / this.scale, start[1] + this.canvas.height / this.scale]
     this.visible_area = new Float32Array([start[0], start[1], end[0], end[1]])
   }
 
-  if (this.dirty_bgcanvas || force_bgcanvas || this.always_render_background || (this.graph && this.graph._last_trigger_time && (now - this.graph._last_trigger_time) < 1000)) { this.drawBackCanvas() }
+  if (this.dirty_bgcanvas || force_bgcanvas || this.always_render_background || (graph && graph._last_trigger_time && (now - graph._last_trigger_time) < 1000)) { this.drawBackCanvas() }
 
   if (this.dirty_canvas || force_canvas) { this.drawFrontCanvas() }
 
@@ -2505,10 +2528,10 @@ LGraphCanvas.prototype.draw = function (force_canvas, force_bgcanvas) {
 }
 
 LGraphCanvas.prototype.drawFrontCanvas = function () {
+  var graph = this.getGraph()
   if (!this.ctx) { this.ctx = this.bgcanvas.getContext('2d') }
   var ctx = this.ctx
-  if (!ctx) // maybe is using webgl...
-{ return }
+  if (!ctx) { return } // maybe is using webgl...
 
   if (ctx.start2D) { ctx.start2D() }
 
@@ -2531,7 +2554,7 @@ LGraphCanvas.prototype.drawFrontCanvas = function () {
   if (this.clear_background) { ctx.clearRect(0, 0, canvas.width, canvas.height) }
 
 // draw bg canvas
-  if (this.bgcanvas == this.canvas) { this.drawBackCanvas() } else { ctx.drawImage(this.bgcanvas, 0, 0) }
+  if (this.bgcanvas === this.canvas) { this.drawBackCanvas() } else { ctx.drawImage(this.bgcanvas, 0, 0) }
 
 // rendering
   if (this.onRender) { this.onRender(canvas, ctx) }
@@ -2539,7 +2562,7 @@ LGraphCanvas.prototype.drawFrontCanvas = function () {
 // info widget
   if (this.show_info) { this.renderInfo(ctx) }
 
-  if (this.graph) {
+  if (graph) {
 // apply transformations
     ctx.save()
     ctx.scale(this.scale, this.scale)
@@ -2566,7 +2589,7 @@ LGraphCanvas.prototype.drawFrontCanvas = function () {
     }
 
 // connections ontop?
-    if (this.graph.config.links_ontop) {
+    if (graph.config.links_ontop) {
       if (!this.live_mode) { this.drawConnections(ctx) }
     }
 
@@ -2616,9 +2639,10 @@ LGraphCanvas.prototype.renderInfo = function (ctx, x, y) {
 
   ctx.font = '10px Arial'
   ctx.fillStyle = '#888'
-  if (this.graph) {
-    ctx.fillText('T: ' + this.graph.globaltime.toFixed(2) + 's', 5, 13 * 1)
-    ctx.fillText('I: ' + this.graph.iteration, 5, 13 * 2)
+  var graph = this.getGraph()
+  if (graph) {
+    ctx.fillText('T: ' + graph.globaltime.toFixed(2) + 's', 5, 13 * 1)
+    ctx.fillText('I: ' + graph.iteration, 5, 13 * 2)
     ctx.fillText('F: ' + this.frame, 5, 13 * 3)
     ctx.fillText('FPS:' + this.fps.toFixed(2), 5, 13 * 4)
   } else { ctx.fillText('No graph selected', 5, 13 * 1) }
@@ -2626,6 +2650,7 @@ LGraphCanvas.prototype.renderInfo = function (ctx, x, y) {
 }
 
 LGraphCanvas.prototype.drawBackCanvas = function () {
+  var graph = this.getGraph()
   var canvas = this.bgcanvas
   if (canvas.width != this.canvas.width ||
 canvas.height != this.canvas.height) {
@@ -2644,7 +2669,7 @@ canvas.height != this.canvas.height) {
   ctx.restore()
   ctx.setTransform(1, 0, 0, 1, 0, 0)
 
-  if (this.graph) {
+  if (graph) {
 // apply transformations
     ctx.save()
     ctx.scale(this.scale, this.scale)
@@ -2809,7 +2834,7 @@ return;
 
         ctx.globalAlpha = editor_alpha
 // change opacity of incompatible slots
-        if (this.connecting_node && Object(__WEBPACK_IMPORTED_MODULE_1__MathHelpers_js__["e" /* isValidConnection */])(slot.type && out_slot.type)) { ctx.globalAlpha = 0.4 * editor_alpha }
+        if (this.connecting_node && Object(__WEBPACK_IMPORTED_MODULE_2__MathHelpers_js__["e" /* isValidConnection */])(slot.type && out_slot.type)) { ctx.globalAlpha = 0.4 * editor_alpha }
 
         ctx.fillStyle = slot.link != null ? '#7F7' : '#AAA'
 
@@ -3010,7 +3035,8 @@ LGraphCanvas.prototype.drawNodeCollapsed = function (node, ctx, fgcolor, bgcolor
 
 // OPTIMIZE THIS: precatch connections position instead of recomputing them every time
 LGraphCanvas.prototype.drawConnections = function (ctx) {
-  var now = Object(__WEBPACK_IMPORTED_MODULE_1__MathHelpers_js__["c" /* getTime */])()
+  var graph = this.getGraph()
+  var now = Object(__WEBPACK_IMPORTED_MODULE_2__MathHelpers_js__["c" /* getTime */])()
 
 // draw connections
   ctx.lineWidth = this.connections_width
@@ -3019,18 +3045,18 @@ LGraphCanvas.prototype.drawConnections = function (ctx) {
   ctx.strokeStyle = '#AAA'
   ctx.globalAlpha = this.editor_alpha
 // for every node
-  for (var n = 0, l = this.graph._nodes.length; n < l; ++n) {
-    var node = this.graph._nodes[n]
+  for (var n = 0, l = graph._nodes.length; n < l; ++n) {
+    var node = graph._nodes[n]
 // for every input (we render just inputs because it is easier as every slot can only have one input)
     if (node.inputs && node.inputs.length) {
       for (var i = 0; i < node.inputs.length; ++i) {
         var input = node.inputs[i]
         if (!input || input.link == null) { continue }
         var linkId = input.link
-        var link = this.graph.links[ linkId ]
+        var link = graph.links[ linkId ]
         if (!link) { continue }
 
-        var startNode = this.graph.getNodeById(link.origin_id)
+        var startNode = graph.getNodeById(link.origin_id)
         if (startNode == null) continue
         var startNodeSlot = link.origin_slot
         var startNodeSlotpos = null
@@ -3060,7 +3086,7 @@ LGraphCanvas.prototype.renderLink = function (ctx, a, b, link, skipBorder, flow,
     return
   }
 
-  var dist = Object(__WEBPACK_IMPORTED_MODULE_1__MathHelpers_js__["b" /* distance */])(a, b)
+  var dist = Object(__WEBPACK_IMPORTED_MODULE_2__MathHelpers_js__["b" /* distance */])(a, b)
 
   if (this.render_connections_border && this.scale > 0.6) { ctx.lineWidth = this.connections_width + 4 }
 
@@ -3122,7 +3148,7 @@ LGraphCanvas.prototype.renderLink = function (ctx, a, b, link, skipBorder, flow,
 // render flowing points
   if (flow) {
     for (var i = 0; i < 5; ++i) {
-      var f = (Object(__WEBPACK_IMPORTED_MODULE_1__MathHelpers_js__["c" /* getTime */])() * 0.001 + (i * 0.2)) % 1
+      var f = (Object(__WEBPACK_IMPORTED_MODULE_2__MathHelpers_js__["c" /* getTime */])() * 0.001 + (i * 0.2)) % 1
       var pos = this.computeConnectionPoint(a, b, f)
       ctx.beginPath()
       ctx.arc(pos[0], pos[1], 5, 0, 2 * Math.PI)
@@ -3132,7 +3158,7 @@ LGraphCanvas.prototype.renderLink = function (ctx, a, b, link, skipBorder, flow,
 }
 
 LGraphCanvas.prototype.computeConnectionPoint = function (a, b, t) {
-  var dist = Object(__WEBPACK_IMPORTED_MODULE_1__MathHelpers_js__["b" /* distance */])(a, b)
+  var dist = Object(__WEBPACK_IMPORTED_MODULE_2__MathHelpers_js__["b" /* distance */])(a, b)
   var p0 = a
   var p1 = [ a[0] + dist * 0.25, a[1] ]
   var p2 = [ b[0] - dist * 0.25, b[1] ]
@@ -3254,7 +3280,7 @@ LGraphCanvas.onMenuAdd = function (node, options, e, prevMenu) {
     if (values[i]) { entries.push({ value: values[i], content: values[i], has_submenu: true }) }
   }
 
-  var menu = new ContextMenu(entries, { event: e, callback: inner_clicked, parentMenu: prevMenu }, refWindow)
+  var menu = new __WEBPACK_IMPORTED_MODULE_1__ContextMenu_js__["a" /* ContextMenu */](entries, { event: e, callback: inner_clicked, parentMenu: prevMenu }, refWindow)
 
   function inner_clicked (v, option, e) {
     var category = v.value
@@ -3262,7 +3288,7 @@ LGraphCanvas.onMenuAdd = function (node, options, e, prevMenu) {
     var values = []
     for (var i in node_types) { values.push({ content: node_types[i].title, value: node_types[i].type }) }
 
-    new ContextMenu(values, {event: e, callback: inner_create, parentMenu: menu }, refWindow)
+    new __WEBPACK_IMPORTED_MODULE_1__ContextMenu_js__["a" /* ContextMenu */](values, {event: e, callback: inner_create, parentMenu: menu }, refWindow)
     return false
   }
 
@@ -3314,7 +3340,7 @@ LGraphCanvas.showMenuNodeOptionalInputs = function (v, options_, e, prevMenu, no
 
   if (!entries.length) { return }
 
-  var menu = new ContextMenu(entries, { event: e, callback: inner_clicked, parentMenu: prevMenu, node: node }, refWindow)
+  var menu = new __WEBPACK_IMPORTED_MODULE_1__ContextMenu_js__["a" /* ContextMenu */](entries, { event: e, callback: inner_clicked, parentMenu: prevMenu, node: node }, refWindow)
 
   function inner_clicked (v, e, prev) {
     if (!node) { return }
@@ -3360,7 +3386,7 @@ LGraphCanvas.showMenuNodeOptionalOutputs = function (v, options, e, prev_menu, n
 
   if (!entries.length) { return }
 
-  var menu = new ContextMenu(entries, {event: e, callback: inner_clicked, parentMenu: prev_menu, node: node }, ref_window)
+  var menu = new __WEBPACK_IMPORTED_MODULE_1__ContextMenu_js__["a" /* ContextMenu */](entries, {event: e, callback: inner_clicked, parentMenu: prev_menu, node: node }, ref_window)
 
   function inner_clicked (v, e, prev) {
     if (!node) { return }
@@ -3375,7 +3401,7 @@ LGraphCanvas.showMenuNodeOptionalOutputs = function (v, options, e, prev_menu, n
 {
       var entries = []
       for (var i in value) { entries.push({ content: i, value: value[i]}) }
-      new ContextMenu(entries, { event: e, callback: inner_clicked, parentMenu: prev_menu, node: node })
+      new __WEBPACK_IMPORTED_MODULE_1__ContextMenu_js__["a" /* ContextMenu */](entries, { event: e, callback: inner_clicked, parentMenu: prev_menu, node: node })
       return false
     } else { node.addOutput(v.value[0], v.value[1], v.value[2]) }
   }
@@ -3399,7 +3425,7 @@ LGraphCanvas.onShowMenuNodeProperties = function (value, options, e, prev_menu, 
   }
   if (!entries.length) { return }
 
-  var menu = new ContextMenu(entries, {event: e, callback: inner_clicked, parentMenu: prev_menu, allow_html: true, node: node }, ref_window)
+  var menu = new __WEBPACK_IMPORTED_MODULE_1__ContextMenu_js__["a" /* ContextMenu */](entries, {event: e, callback: inner_clicked, parentMenu: prev_menu, allow_html: true, node: node }, ref_window)
 
   function inner_clicked (v, options, e, prev) {
     if (!node) { return }
@@ -3592,7 +3618,7 @@ LGraphCanvas.onMenuNodePin = function (value, options, e, menu, node) {
 }
 
 LGraphCanvas.onMenuNodeMode = function (value, options, e, menu, node) {
-  new ContextMenu(['Always', 'On Event', 'Never'], {event: e, callback: inner_clicked, parentMenu: prev_menu, node: node })
+  new __WEBPACK_IMPORTED_MODULE_1__ContextMenu_js__["a" /* ContextMenu */](['Always', 'On Event', 'Never'], {event: e, callback: inner_clicked, parentMenu: prev_menu, node: node })
 
   function inner_clicked (v) {
     if (!node) { return }
@@ -3617,7 +3643,7 @@ LGraphCanvas.onMenuNodeColors = function (value, options, e, menu, node) {
     var value = {value: i, content: "<span style='display: block; color:" + color.color + '; background-color:' + color.bgcolor + "'>" + i + '</span>'}
     values.push(value)
   }
-  new ContextMenu(values, { event: e, callback: inner_clicked, parentMenu: menu, node: node })
+  new __WEBPACK_IMPORTED_MODULE_1__ContextMenu_js__["a" /* ContextMenu */](values, { event: e, callback: inner_clicked, parentMenu: menu, node: node })
 
   function inner_clicked (v) {
     if (!node) { return }
@@ -3636,7 +3662,7 @@ LGraphCanvas.onMenuNodeColors = function (value, options, e, menu, node) {
 LGraphCanvas.onMenuNodeShapes = function (value, options, e, menu, node) {
   if (!node) { throw ('no node passed') }
 
-  new ContextMenu(['box', 'round'], { event: e, callback: inner_clicked, parentMenu: menu, node: node })
+  new __WEBPACK_IMPORTED_MODULE_1__ContextMenu_js__["a" /* ContextMenu */](['box', 'round'], { event: e, callback: inner_clicked, parentMenu: menu, node: node })
 
   function inner_clicked (v) {
     if (!node) { return }
@@ -3679,7 +3705,7 @@ LGraphCanvas.prototype.getCanvasMenuOptions = function () {
 // {content:"Collapse All", callback: LGraphCanvas.onMenuCollapseAll }
     ]
 
-    if (this._graph_stack && this._graph_stack.length > 0) { options = [{content: 'Close subgraph', callback: this.closeSubgraph.bind(this) }, null].concat(options) }
+    if (this.graphStack.length > 0) { options = [{content: 'Close subgraph', callback: this.closeSubgraph.bind(this) }, null].concat(options) }
   }
 
   if (this.getExtraMenuOptions) {
@@ -3762,7 +3788,7 @@ LGraphCanvas.prototype.processContextMenu = function (node, event) {
 // show menu
   if (!menu_info) { return }
 
-  var menu = new ContextMenu(menu_info, options, ref_window)
+  var menu = new __WEBPACK_IMPORTED_MODULE_1__ContextMenu_js__["a" /* ContextMenu */](menu_info, options, ref_window)
 
   function inner_option_clicked (v, options, e) {
     if (!v) { return }
@@ -3795,6 +3821,257 @@ function closeAllContextMenus (ref_window) {
 
 /***/ }),
 /* 5 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return ContextMenu; });
+
+/* GUI elements used for canvas editing *************************************/
+
+/**
+* ContextMenu from LiteGUI
+*
+* @class ContextMenu
+* @constructor
+* @param {Array} values (allows object { title: "Nice text", callback: function ... })
+* @param {Object} options [optional] Some options:\
+* - title: title to show on top of the menu
+* - callback: function to call when an option is clicked, it receives the item information
+* - ignore_item_callbacks: ignores the callback inside the item, it just calls the options.callback
+* - event: you can pass a MouseEvent, this way the ContextMenu appears in that position
+*/
+function ContextMenu (values, options) {
+  options = options || {}
+  this.options = options
+  var that = this
+
+// to link a menu with its parent
+  if (options.parentMenu) {
+    if (options.parentMenu.constructor !== this.constructor) {
+      console.error('parentMenu must be of class ContextMenu, ignoring it')
+      options.parentMenu = null
+    } else {
+      this.parentMenu = options.parentMenu
+      this.parentMenu.lock = true
+      this.parentMenu.current_submenu = this
+    }
+  }
+
+  if (options.event && options.event.constructor !== MouseEvent && options.event.constructor !== CustomEvent) {
+    console.error('Event passed to ContextMenu is not of type MouseEvent or CustomEvent. Ignoring it.')
+    options.event = null
+  }
+
+  var root = document.createElement('div')
+  root.className = 'LiteGraph litecontextmenu litemenubar-panel'
+  root.style.minWidth = 100
+  root.style.minHeight = 100
+  root.style.pointerEvents = 'none'
+  setTimeout(function () { root.style.pointerEvents = 'auto' }, 100) // delay so the mouse up event is not caugh by this element
+
+// this prevents the default context browser menu to open in case this menu was created when pressing right button
+  root.addEventListener('mouseup', function (e) {
+    e.preventDefault(); return true
+  }, true)
+  root.addEventListener('contextmenu', function (e) {
+    if (e.button !== 2) { return false } // right button
+    e.preventDefault()
+    return false
+  }, true)
+
+  root.addEventListener('mousedown', function (e) {
+    if (e.button === 2) {
+      that.close()
+      e.preventDefault(); return true
+    }
+  }, true)
+
+  this.root = root
+
+// title
+  if (options.title) {
+    var element = document.createElement('div')
+    element.className = 'litemenu-title'
+    element.innerHTML = options.title
+    root.appendChild(element)
+  }
+
+// entries
+  var num = 0
+  for (var i in values) {
+    var name = values.constructor == Array ? values[i] : i
+    if (name != null && name.constructor !== String) { name = name.content === undefined ? String(name) : name.content }
+    var value = values[i]
+    this.addItem(name, value, options)
+    num++
+  }
+
+// close on leave
+  root.addEventListener('mouseleave', function (e) {
+    if (that.lock) { return }
+    that.close(e)
+  })
+
+// insert before checking position
+  var root_document = document
+  if (options.event) { root_document = options.event.target.ownerDocument }
+
+  if (!root_document) { root_document = document }
+  root_document.body.appendChild(root)
+
+// compute best position
+  var left = options.left || 0
+  var top = options.top || 0
+  if (options.event) {
+    left = (options.event.pageX - 10)
+    top = (options.event.pageY - 10)
+    if (options.title) { top -= 20 }
+
+    if (options.parentMenu) {
+      var rect = options.parentMenu.root.getBoundingClientRect()
+      left = rect.left + rect.width
+    }
+
+    var body_rect = document.body.getBoundingClientRect()
+    var root_rect = root.getBoundingClientRect()
+
+    if (left > (body_rect.width - root_rect.width - 10)) { left = (body_rect.width - root_rect.width - 10) }
+    if (top > (body_rect.height - root_rect.height - 10)) { top = (body_rect.height - root_rect.height - 10) }
+  }
+
+  root.style.left = left + 'px'
+  root.style.top = top + 'px'
+}
+
+ContextMenu.prototype.addItem = function (name, value, options) {
+  var that = this
+  options = options || {}
+
+  var element = document.createElement('div')
+  element.className = 'litemenu-entry submenu'
+
+  var disabled = false
+
+  if (value === null) {
+    element.classList.add('separator')
+// element.innerHTML = "<hr/>"
+// continue;
+  } else {
+    element.innerHTML = value && value.title ? value.title : name
+    element.value = value
+
+    if (value) {
+      if (value.disabled) {
+        disabled = true
+        element.classList.add('disabled')
+      }
+      if (value.submenu || value.has_submenu) { element.classList.add('has_submenu') }
+    }
+
+    if (typeof (value) === 'function') {
+      element.dataset['value'] = name
+      element.onclick_callback = value
+    } else { element.dataset['value'] = value }
+  }
+
+  this.root.appendChild(element)
+  if (!disabled) { element.addEventListener('click', inner_onclick) }
+  if (options.autoopen) { element.addEventListener('mouseenter', inner_over) }
+
+  function inner_over (e) {
+    var value = this.value
+    if (!value || !value.has_submenu) { return }
+    inner_onclick.call(this, e)
+  }
+
+// menu option clicked
+  function inner_onclick (e) {
+    var value = this.value
+    var close_parent = true
+
+    if (that.current_submenu) { that.current_submenu.close(e) }
+
+// global callback
+    if (options.callback) {
+      var r = options.callback.call(this, value, options, e, that, options.node)
+      if (r === true) { close_parent = false }
+    }
+
+// special cases
+    if (value) {
+      if (value.callback && !options.ignore_item_callbacks && value.disabled !== true)  // item callback
+{
+        var r = value.callback.call(this, value, options, e, that, options.node)
+        if (r === true) { close_parent = false }
+      }
+      if (value.submenu) {
+        if (!value.submenu.options) { throw ('ContextMenu submenu needs options') }
+        var submenu = new that.constructor(value.submenu.options, {
+          callback: value.submenu.callback,
+          event: e,
+          parentMenu: that,
+          ignore_item_callbacks: value.submenu.ignore_item_callbacks,
+          title: value.submenu.title,
+          autoopen: options.autoopen
+        })
+        close_parent = false
+      }
+    }
+
+    if (close_parent && !that.lock) { that.close() }
+  }
+
+  return element
+}
+
+ContextMenu.prototype.close = function (e, ignore_parent_menu) {
+  if (this.root.parentNode) { this.root.parentNode.removeChild(this.root) }
+  if (this.parentMenu && !ignore_parent_menu) {
+    this.parentMenu.lock = false
+    this.parentMenu.current_submenu = null
+    if (e === undefined) { this.parentMenu.close() } else if (e && !ContextMenu.isCursorOverElement(e, this.parentMenu.root)) {
+      ContextMenu.trigger(this.parentMenu.root, 'mouseleave', e)
+    }
+  }
+  if (this.current_submenu) { this.current_submenu.close(e, true) }
+}
+
+// this code is used to trigger events easily (used in the context menu mouseleave
+ContextMenu.trigger = function (element, event_name, params, origin) {
+  var evt = document.createEvent('CustomEvent')
+  evt.initCustomEvent(event_name, true, true, params) // canBubble, cancelable, detail
+  evt.srcElement = origin
+  if (element.dispatchEvent) { element.dispatchEvent(evt) } else if (element.__events) { element.__events.dispatchEvent(evt) }
+// else nothing seems binded here so nothing to do
+  return evt
+}
+
+// returns the top most menu
+ContextMenu.prototype.getTopMenu = function () {
+  if (this.options.parentMenu) { return this.options.parentMenu.getTopMenu() }
+  return this
+}
+
+ContextMenu.prototype.getFirstEvent = function () {
+  if (this.options.parentMenu) { return this.options.parentMenu.getFirstEvent() }
+  return this.options.event
+}
+
+ContextMenu.isCursorOverElement = function (event, element) {
+  var left = event.pageX
+  var top = event.pageY
+  var rect = element.getBoundingClientRect()
+  if (!rect) { return false }
+  if (top > rect.top && top < (rect.top + rect.height) &&
+left > rect.left && left < (rect.left + rect.width)) { return true }
+  return false
+}
+
+
+
+
+/***/ }),
+/* 6 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -4858,7 +5135,7 @@ LGraphNode.prototype.localToScreen = function (x, y, graphcanvas) {
 
 
 /***/ }),
-/* 6 */
+/* 7 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";

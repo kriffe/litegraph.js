@@ -26,7 +26,6 @@ import {CONSTANTS} from './Constants.js'
 * @constructor
 */
 
-
 const proxy = null // used to redirect calls
 
 const debug = false
@@ -59,8 +58,7 @@ var registerNodeType = function (type, baseClass) {
 // info.name = name.substr(pos+1,name.length - pos);
 
 // extend class
-  if (baseClass.prototype) // is a class
-      {
+  if (baseClass.prototype) {  // is a class
     for (var i in LGraphNode.prototype) {
       if (!baseClass.prototype[i]) { baseClass.prototype[i] = LGraphNode.prototype[i] }
     }
@@ -106,11 +104,9 @@ var createNode = function (type, title, options) {
     return null
   }
 
-  var prototype = BaseClass.prototype || BaseClass
-
   title = title || BaseClass.title || type
 
-  var node = new BaseClass(name)
+  var node = new BaseClass(title)
   node.type = type
 
   if (!node.title) node.title = title
@@ -174,35 +170,35 @@ var getNodeTypesCategories = function () {
   return result
 }
 
-// debug purposes: reloads all the js scripts that matches a wilcard
-var reloadNodes = function (folder_wildcard) {
-  var tmp = document.getElementsByTagName('script')
-// weird, this array changes by its own, so we use a copy
-  var script_files = []
-  for (var i in tmp) { script_files.push(tmp[i]) }
+// // debug purposes: reloads all the js scripts that matches a wilcard
+// var reloadNodes = function (folder_wildcard) {
+//   var tmp = document.getElementsByTagName('script')
+// // weird, this array changes by its own, so we use a copy
+//   var script_files = []
+//   for (var i in tmp) { script_files.push(tmp[i]) }
 
-  var docHeadObj = document.getElementsByTagName('head')[0]
-  folder_wildcard = document.location.href + folder_wildcard
+//   var docHeadObj = document.getElementsByTagName('head')[0]
+//   folder_wildcard = document.location.href + folder_wildcard
 
-  for (var i in script_files) {
-    var src = script_files[i].src
-    if (!src || src.substr(0, folder_wildcard.length) != folder_wildcard) { continue }
+//   for (var i in script_files) {
+//     var src = script_files[i].src
+//     if (!src || src.substr(0, folder_wildcard.length) != folder_wildcard) { continue }
 
-    try {
-      if (debug) { console.log('Reloading: ' + src) }
-      var dynamicScript = document.createElement('script')
-      dynamicScript.type = 'text/javascript'
-      dynamicScript.src = src
-      docHeadObj.appendChild(dynamicScript)
-      docHeadObj.removeChild(script_files[i])
-    } catch (err) {
-      if (throw_errors) { throw err }
-      if (debug) { console.log('Error while reloading ' + src) }
-    }
-  }
+//     try {
+//       if (debug) { console.log('Reloading: ' + src) }
+//       var dynamicScript = document.createElement('script')
+//       dynamicScript.type = 'text/javascript'
+//       dynamicScript.src = src
+//       docHeadObj.appendChild(dynamicScript)
+//       docHeadObj.removeChild(script_files[i])
+//     } catch (err) {
+//       if (throw_errors) { throw err }
+//       if (debug) { console.log('Error while reloading ' + src) }
+//     }
+//   }
 
-  if (debug) { console.log('Nodes reloaded') }
-}
+//   if (debug) { console.log('Nodes reloaded') }
+// }
 
 
 // *************************************************************
@@ -328,12 +324,13 @@ LGraph.prototype.clear = function () {
 */
 
 LGraph.prototype.attachCanvas = function (graphcanvas) {
-  if (graphcanvas.constructor !== LGraphCanvas) { throw new Error('attachCanvas expects a LGraphCanvas instance') }
-  if (graphcanvas.graph && graphcanvas.graph !== this) { graphcanvas.graph.detachCanvas(graphcanvas) }
+  console.warn('DEPRECATED')
+  // if (graphcanvas.constructor !== LGraphCanvas) { throw new Error('attachCanvas expects a LGraphCanvas instance') }
+  // if (graphcanvas.graph && graphcanvas.graph !== this) { graphcanvas.graph.detachCanvas(graphcanvas) }
 
-  graphcanvas.graph = this
-  if (!this.list_of_graphcanvas) { this.list_of_graphcanvas = [] }
-  this.list_of_graphcanvas.push(graphcanvas)
+  // graphcanvas.graph = this
+  // if (!this.list_of_graphcanvas) { this.list_of_graphcanvas = [] }
+  // this.list_of_graphcanvas.push(graphcanvas)
 }
 
 /**
@@ -343,12 +340,13 @@ LGraph.prototype.attachCanvas = function (graphcanvas) {
 */
 
 LGraph.prototype.detachCanvas = function (graphcanvas) {
-  if (!this.list_of_graphcanvas) { return }
+  console.warn('DEPRECATED')
+  // if (!this.list_of_graphcanvas) { return }
 
-  var pos = this.list_of_graphcanvas.indexOf(graphcanvas)
-  if (pos == -1) { return }
-  graphcanvas.graph = null
-  this.list_of_graphcanvas.splice(pos, 1)
+  // var pos = this.list_of_graphcanvas.indexOf(graphcanvas)
+  // if (pos == -1) { return }
+  // graphcanvas.graph = null
+  // this.list_of_graphcanvas.splice(pos, 1)
 }
 
 /**
@@ -687,7 +685,7 @@ LGraph.prototype.remove = function (node) {
 
 // remove from containers
   var pos = this._nodes.indexOf(node)
-  if (pos != -1) { this._nodes.splice(pos, 1) }
+  if (pos !== -1) { this._nodes.splice(pos, 1) }
   delete this._nodes_by_id[node.id]
 
   if (this.onNodeRemoved) { this.onNodeRemoved(node) }
@@ -801,7 +799,7 @@ LGraph.prototype.getGlobalInputData = function (name) {
 
 // rename the global input
 LGraph.prototype.renameGlobalInput = function (old_name, name) {
-  if (name == old_name) { return }
+  if (name === old_name) { return }
 
   if (!this.global_inputs[old_name]) { return false }
 
@@ -1073,8 +1071,7 @@ LGraph.prototype.onNodeTrace = function (node, msg, color) {
 // TODO
 }
 
-
-if (typeof (window) !== undefined && !window['requestAnimationFrame']) {
+if (window !== undefined && !window['requestAnimationFrame']) {
   window.requestAnimationFrame = window.webkitRequestAnimationFrame ||
   window.mozRequestAnimationFrame ||
   function (callback) {
@@ -1088,7 +1085,8 @@ export {
     LGraphNode,
     LGraphCanvas,
     createNode,
-
+    getNodeType,
     registerNodeType,
-    allow_scripts
+    allow_scripts,
+    getNodeTypesCategories
   }

@@ -8,7 +8,7 @@
 }
 
 
-.litegraph.litecontextmenu {
+.litecontextmenu {
 	position: fixed;
 	top: 100px;
 	left: 100px;
@@ -19,18 +19,18 @@
 	background-color: #2E2E2E !important;
 }
 
-.litegraph.litecontextmenu .litemenu-title img {
+.litecontextmenu .litemenu-title img {
 	margin-top: 2px;
 	margin-left: 2px;
 	margin-right: 4px;
 }
 
-.litegraph.litecontextmenu .litemenu-entry {
+.litecontextmenu .litemenu-entry {
 	margin: 2px;
 	padding: 2px;
 }
 
-.litegraph.litecontextmenu .litemenu-entry.submenu {
+.litecontextmenu .litemenu-entry.submenu {
 	background-color: #2E2E2E !important;
 }
 
@@ -48,8 +48,8 @@
 	padding-left: 10px;
 	padding-right: 10px;
 	user-select: none;
-	-moz-user-select: none;  
-	-webkit-user-select: none;  
+	-moz-user-select: none;
+	-webkit-user-select: none;
 	cursor: pointer;
 }
 
@@ -76,9 +76,9 @@
 	padding: 0 0 0 4px;
 	margin: 2px;
 	padding-left: 2px;
-	-moz-user-select: none;  
-	-webkit-user-select: none;  
-	user-select: none;  
+	-moz-user-select: none;
+	-webkit-user-select: none;
+	user-select: none;
 	cursor: pointer;
 }
 
@@ -122,7 +122,7 @@
 
 .litegraph .litemenu-title {
 	color: #DDE;
-	background-color: #111;	
+	background-color: #111;
 	margin: 0;
 	padding: 2px;
 	cursor: default;
@@ -162,7 +162,7 @@
 
 .graphcontextmenu-title {
 	color: #DDE;
-	background-color: #222;	
+	background-color: #222;
 	margin: 0;
 	padding: 2px;
 	cursor: default;
@@ -252,4 +252,3 @@
 	margin-top: 3px;
 	vertical-align: top;
 }
-

@@ -89,12 +89,9 @@ Subgraph.prototype.onSubgraphTypeChangeGlobalOutput = function (name, type) {
 
 Subgraph.prototype.getExtraMenuOptions = function (graphcanvas) {
   var that = this
-  return [ {content: 'Open',
-    callback:
-function () {
-  graphcanvas.openSubgraph(that.subgraph)
-}
-  }]
+  return [
+    { content: 'Open', callback: function () { graphcanvas.openSubgraph(that.subgraph) } }
+  ]
 }
 
 Subgraph.prototype.onExecute = function () {

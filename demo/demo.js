@@ -1,4 +1,5 @@
-/* global LITEGRAPH */
+import {LITEGRAPH} from '/dist/litegraph.module.js'
+
 var graph = new LITEGRAPH.LGraph()
 
 var graphcanvas = new LITEGRAPH.LGraphCanvas('#graphCanvas', graph)
