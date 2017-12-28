@@ -1,4 +1,5 @@
 import {CONSTANTS} from './Constants.js'
+import {isValidConnection, overlapBounding, isInsideRectangle, getTime, distance} from './MathHelpers.js'
 
 //* ********************************************************************************
 // LGraphCanvas: LGraph renderer CLASS
@@ -679,8 +680,8 @@ this.node_dragged.pos[1] = Math.round(this.node_dragged.pos[1]);
       this.resizing_node.size[0] += delta[0] / this.scale
       this.resizing_node.size[1] += delta[1] / this.scale
       var max_slots = Math.max(this.resizing_node.inputs ? this.resizing_node.inputs.length : 0, this.resizing_node.outputs ? this.resizing_node.outputs.length : 0)
-      if (this.resizing_node.size[1] < max_slots * NODE_SLOT_HEIGHT + 4) { this.resizing_node.size[1] = max_slots * NODE_SLOT_HEIGHT + 4 }
-      if (this.resizing_node.size[0] < NODE_MIN_WIDTH) { this.resizing_node.size[0] = NODE_MIN_WIDTH }
+      if (this.resizing_node.size[1] < max_slots * CONSTANTS.NODE_SLOT_HEIGHT + 4) { this.resizing_node.size[1] = max_slots * CONSTANTS.NODE_SLOT_HEIGHT + 4 }
+      if (this.resizing_node.size[0] < CONSTANTS.NODE_MIN_WIDTH) { this.resizing_node.size[0] = CONSTANTS.NODE_MIN_WIDTH }
 
       this.canvas.style.cursor = 'se-resize'
       this.dirty_canvas = true
@@ -725,8 +726,8 @@ LGraphCanvas.prototype.processMouseUp = function (e) {
 
 // node below mouse
       if (node) {
-        if (this.connecting_output.type == EVENT && this.isOverNodeBox(node, e.canvasX, e.canvasY)) {
-          this.connecting_node.connect(this.connecting_slot, node, EVENT)
+        if (this.connecting_output.type == CONSTANTS.EVENT && this.isOverNodeBox(node, e.canvasX, e.canvasY)) {
+          this.connecting_node.connect(this.connecting_slot, node, CONSTANTS.EVENT)
         } else {
 // slot below mouse? connect
           var slot = this.isOverNodeInput(node, e.canvasX, e.canvasY)
@@ -735,7 +736,7 @@ LGraphCanvas.prototype.processMouseUp = function (e) {
           } else { // not on top of an input
             var input = node.getInputInfo(0)
 // auto connect
-            if (this.connecting_output.type == EVENT) { this.connecting_node.connect(this.connecting_slot, node, EVENT) } else
+            if (this.connecting_output.type === CONSTANTS.EVENT) { this.connecting_node.connect(this.connecting_slot, node, CONSTANTS.EVENT) } else
 if (input && !input.link && input.type == this.connecting_output.type) // toLowerCase missing
 { this.connecting_node.connect(this.connecting_slot, node, 0) }
           }
@@ -816,7 +817,7 @@ this.draw();
 }
 
 LGraphCanvas.prototype.isOverNodeBox = function (node, canvasx, canvasy) {
-  var title_height = NODE_TITLE_HEIGHT
+  var title_height = CONSTANTS.NODE_TITLE_HEIGHT
   if (isInsideRectangle(canvasx, canvasy, node.pos[0] + 2, node.pos[1] + 2 - title_height, title_height - 4, title_height - 4)) { return true }
   return false
 }
@@ -1199,17 +1200,17 @@ LGraphCanvas.prototype.drawFrontCanvas = function () {
 // current connection
     if (this.connecting_pos != null) {
       ctx.lineWidth = this.connections_width
-      var link_color = null
+      var linkColor = null
       switch (this.connecting_output.type) {
-        case EVENT: link_color = '#F85'; break
+        case CONSTANTS.EVENT: linkColor = '#F85'; break
         default:
-          link_color = '#AFA'
+          linkColor = '#AFA'
       }
 // the connection being dragged by the mouse
-      this.renderLink(ctx, this.connecting_pos, [this.canvas_mouse[0], this.canvas_mouse[1]], null, false, null, link_color)
+      this.renderLink(ctx, this.connecting_pos, [this.canvas_mouse[0], this.canvas_mouse[1]], null, false, null, linkColor)
 
       ctx.beginPath()
-      if (this.connecting_output.type === EVENT) { ctx.rect((this.connecting_pos[0] - 6) + 0.5, (this.connecting_pos[1] - 5) + 0.5, 14, 10) } else { ctx.arc(this.connecting_pos[0], this.connecting_pos[1], 4, 0, Math.PI * 2) }
+      if (this.connecting_output.type === CONSTANTS.EVENT) { ctx.rect((this.connecting_pos[0] - 6) + 0.5, (this.connecting_pos[1] - 5) + 0.5, 14, 10) } else { ctx.arc(this.connecting_pos[0], this.connecting_pos[1], 4, 0, Math.PI * 2) }
       ctx.fill()
 
       ctx.fillStyle = '#ffcc00'
@@ -1342,7 +1343,7 @@ canvas.height != this.canvas.height) {
 LGraphCanvas.prototype.drawNode = function (node, ctx) {
   var glow = false
 
-  var color = node.color || NODE_DEFAULT_COLOR
+  var color = node.color || CONSTANTS.NODE_DEFAULT_COLOR
 // if (this.selected) color = "#88F";
 
   var render_title = true
@@ -1395,7 +1396,7 @@ return;
   var shape = node.shape || 'box'
   var size = new Float32Array(node.size)
   if (node.flags.collapsed) {
-    size[0] = NODE_COLLAPSED_WIDTH
+    size[0] = CONSTANTS.NODE_COLLAPSED_WIDTH
     size[1] = 0
   }
 
@@ -1445,7 +1446,7 @@ return;
 
         ctx.beginPath()
 
-        if (slot.type === EVENT) { ctx.rect((pos[0] - 6) + 0.5, (pos[1] - 5) + 0.5, 14, 10) } else { ctx.arc(pos[0], pos[1], 4, 0, Math.PI * 2) }
+        if (slot.type === CONSTANTS.EVENT) { ctx.rect((pos[0] - 6) + 0.5, (pos[1] - 5) + 0.5, 14, 10) } else { ctx.arc(pos[0], pos[1], 4, 0, Math.PI * 2) }
 
         ctx.fill()
 
@@ -1479,7 +1480,7 @@ return;
         ctx.beginPath()
 // ctx.rect( node.size[0] - 14,i*14,10,10);
 
-        if (slot.type === EVENT) { ctx.rect((pos[0] - 6) + 0.5, (pos[1] - 5) + 0.5, 14, 10) } else { ctx.arc(pos[0], pos[1], 4, 0, Math.PI * 2) }
+        if (slot.type === CONSTANTS.EVENT) { ctx.rect((pos[0] - 6) + 0.5, (pos[1] - 5) + 0.5, 14, 10) } else { ctx.arc(pos[0], pos[1], 4, 0, Math.PI * 2) }
 
 // trigger
 // if(slot.node_id != null && slot.slot == -1)
@@ -1512,38 +1513,30 @@ return;
 }
 
 /* Renders the node shape */
-LGraphCanvas.prototype.drawNodeShape = function (node, ctx, size, fgcolor, bgcolor, no_title, selected) {
+LGraphCanvas.prototype.drawNodeShape = function (node, ctx, size, fgcolor, bgcolor, noTitle, selected) {
 // bg rect
-  ctx.strokeStyle = fgcolor || NODE_DEFAULT_COLOR
-  ctx.fillStyle = bgcolor || NODE_DEFAULT_BGCOLOR
+  ctx.strokeStyle = fgcolor || CONSTANTS.NODE_DEFAULT_COLOR
+  ctx.fillStyle = bgcolor || CONSTANTS.NODE_DEFAULT_BGCOLOR
 
-/* gradient test
-var grad = ctx.createLinearGradient(0,0,0,node.size[1]);
-grad.addColorStop(0, "#AAA");
-grad.addColorStop(0.5, fgcolor || NODE_DEFAULT_COLOR);
-grad.addColorStop(1, bgcolor || NODE_DEFAULT_BGCOLOR);
-ctx.fillStyle = grad;
-// */
-
-  var title_height = NODE_TITLE_HEIGHT
+  var titleHeight = CONSTANTS.NODE_TITLE_HEIGHT
 
 // render depending on shape
   var shape = node.shape || 'box'
-  if (shape == 'box') {
+  if (shape === 'box') {
     ctx.beginPath()
-    ctx.rect(0, no_title ? 0 : -title_height, size[0] + 1, no_title ? size[1] : size[1] + title_height)
+    ctx.rect(0, noTitle ? 0 : -titleHeight, size[0] + 1, noTitle ? size[1] : size[1] + titleHeight)
     ctx.fill()
     ctx.shadowColor = 'transparent'
 
     if (selected) {
       ctx.strokeStyle = '#CCC'
-      ctx.strokeRect(-0.5, no_title ? -0.5 : -title_height + -0.5, size[0] + 2, no_title ? (size[1] + 2) : (size[1] + title_height + 2) - 1)
+      ctx.strokeRect(-0.5, noTitle ? -0.5 : -titleHeight + -0.5, size[0] + 2, noTitle ? (size[1] + 2) : (size[1] + titleHeight + 2) - 1)
       ctx.strokeStyle = fgcolor
     }
-  } else if (node.shape == 'round') {
-    ctx.roundRect(0, no_title ? 0 : -title_height, size[0], no_title ? size[1] : size[1] + title_height, 10)
+  } else if (node.shape === 'round') {
+    ctx.roundRect(0, noTitle ? 0 : -titleHeight, size[0], noTitle ? size[1] : size[1] + titleHeight, 10)
     ctx.fill()
-  } else if (node.shape == 'circle') {
+  } else if (node.shape === 'circle') {
     ctx.beginPath()
     ctx.arc(size[0] * 0.5, size[1] * 0.5, size[0] * 0.5, 0, Math.PI * 2)
     ctx.fill()
@@ -1561,35 +1554,35 @@ ctx.fillStyle = grad;
   if (node.onDrawBackground) { node.onDrawBackground(ctx) }
 
 // title bg (remember, it is rendered ABOVE the node
-  if (!no_title) {
-    ctx.fillStyle = fgcolor || NODE_DEFAULT_COLOR
-    var old_alpha = ctx.globalAlpha
-    ctx.globalAlpha = 0.5 * old_alpha
-    if (shape == 'box') {
+  if (!noTitle) {
+    ctx.fillStyle = fgcolor || CONSTANTS.NODE_DEFAULT_COLOR
+    var oldAlpha = ctx.globalAlpha
+    ctx.globalAlpha = 0.5 * oldAlpha
+    if (shape === 'box') {
       ctx.beginPath()
-      ctx.rect(0, -title_height, size[0] + 1, title_height)
+      ctx.rect(0, -titleHeight, size[0] + 1, titleHeight)
       ctx.fill()
 // ctx.stroke();
-    } else if (shape == 'round') {
-      ctx.roundRect(0, -title_height, size[0], title_height, 10, 0)
+    } else if (shape === 'round') {
+      ctx.roundRect(0, -titleHeight, size[0], titleHeight, 10, 0)
 // ctx.fillRect(0,8,size[0],NODE_TITLE_HEIGHT - 12);
       ctx.fill()
 // ctx.stroke();
     }
 
 // title box
-    ctx.fillStyle = node.boxcolor || NODE_DEFAULT_BOXCOLOR
+    ctx.fillStyle = node.boxcolor || CONSTANTS.NODE_DEFAULT_BOXCOLOR
     ctx.beginPath()
-    if (shape == 'round') { ctx.arc(title_height * 0.5, title_height * -0.5, (title_height - 6) * 0.5, 0, Math.PI * 2) } else { ctx.rect(3, -title_height + 3, title_height - 6, title_height - 6) }
+    if (shape === 'round') { ctx.arc(titleHeight * 0.5, titleHeight * -0.5, (titleHeight - 6) * 0.5, 0, Math.PI * 2) } else { ctx.rect(3, -titleHeight + 3, titleHeight - 6, titleHeight - 6) }
     ctx.fill()
-    ctx.globalAlpha = old_alpha
+    ctx.globalAlpha = oldAlpha
 
 // title text
     ctx.font = this.title_text_font
     var title = node.getTitle()
     if (title && this.scale > 0.5) {
-      ctx.fillStyle = NODE_TITLE_COLOR
-      ctx.fillText(title, 16, 13 - title_height)
+      ctx.fillStyle = CONSTANTS.NODE_TITLE_COLOR
+      ctx.fillText(title, 16, 13 - titleHeight)
     }
   }
 }
@@ -1597,49 +1590,47 @@ ctx.fillStyle = grad;
 /* Renders the node when collapsed */
 LGraphCanvas.prototype.drawNodeCollapsed = function (node, ctx, fgcolor, bgcolor) {
 // draw default collapsed shape
-  ctx.strokeStyle = fgcolor || NODE_DEFAULT_COLOR
-  ctx.fillStyle = bgcolor || NODE_DEFAULT_BGCOLOR
+  ctx.strokeStyle = fgcolor || CONSTANTS.NODE_DEFAULT_COLOR
+  ctx.fillStyle = bgcolor || CONSTANTS.NODE_DEFAULT_BGCOLOR
 
-  var collapsed_radius = NODE_COLLAPSED_RADIUS
+  var collapsedRadius = CONSTANTS.NODE_COLLAPSED_RADIUS
 
 // circle shape
   var shape = node.shape || 'box'
-  if (shape == 'circle') {
+  if (shape === 'circle') {
     ctx.beginPath()
-    ctx.arc(node.size[0] * 0.5, node.size[1] * 0.5, collapsed_radius, 0, Math.PI * 2)
+    ctx.arc(node.size[0] * 0.5, node.size[1] * 0.5, collapsedRadius, 0, Math.PI * 2)
     ctx.fill()
     ctx.shadowColor = 'rgba(0,0,0,0)'
     ctx.stroke()
 
-    ctx.fillStyle = node.boxcolor || NODE_DEFAULT_BOXCOLOR
+    ctx.fillStyle = node.boxcolor || CONSTANTS.NODE_DEFAULT_BOXCOLOR
     ctx.beginPath()
-    ctx.arc(node.size[0] * 0.5, node.size[1] * 0.5, collapsed_radius * 0.5, 0, Math.PI * 2)
+    ctx.arc(node.size[0] * 0.5, node.size[1] * 0.5, collapsedRadius * 0.5, 0, Math.PI * 2)
     ctx.fill()
-  } else if (shape == 'round') // rounded box
-{
+  } else if (shape === 'round') { // rounded box
     ctx.beginPath()
-    ctx.roundRect(node.size[0] * 0.5 - collapsed_radius, node.size[1] * 0.5 - collapsed_radius, 2 * collapsed_radius, 2 * collapsed_radius, 5)
+    ctx.roundRect(node.size[0] * 0.5 - collapsedRadius, node.size[1] * 0.5 - collapsedRadius, 2 * collapsedRadius, 2 * collapsedRadius, 5)
     ctx.fill()
     ctx.shadowColor = 'rgba(0,0,0,0)'
     ctx.stroke()
 
-    ctx.fillStyle = node.boxcolor || NODE_DEFAULT_BOXCOLOR
+    ctx.fillStyle = node.boxcolor || CONSTANTS.NODE_DEFAULT_BOXCOLOR
     ctx.beginPath()
-    ctx.roundRect(node.size[0] * 0.5 - collapsed_radius * 0.5, node.size[1] * 0.5 - collapsed_radius * 0.5, collapsed_radius, collapsed_radius, 2)
+    ctx.roundRect(node.size[0] * 0.5 - collapsedRadius * 0.5, node.size[1] * 0.5 - collapsedRadius * 0.5, collapsedRadius, collapsedRadius, 2)
     ctx.fill()
-  } else // flat box
-{
+  } else { // flat box
     ctx.beginPath()
 // ctx.rect(node.size[0] * 0.5 - collapsed_radius, node.size[1] * 0.5 - collapsed_radius, 2*collapsed_radius, 2*collapsed_radius);
-    ctx.rect(0, 0, node.size[0], collapsed_radius * 2)
+    ctx.rect(0, 0, node.size[0], collapsedRadius * 2)
     ctx.fill()
     ctx.shadowColor = 'rgba(0,0,0,0)'
     ctx.stroke()
 
-    ctx.fillStyle = node.boxcolor || NODE_DEFAULT_BOXCOLOR
+    ctx.fillStyle = node.boxcolor || CONSTANTS.NODE_DEFAULT_BOXCOLOR
     ctx.beginPath()
 // ctx.rect(node.size[0] * 0.5 - collapsed_radius*0.5, node.size[1] * 0.5 - collapsed_radius*0.5, collapsed_radius,collapsed_radius);
-    ctx.rect(collapsed_radius * 0.5, collapsed_radius * 0.5, collapsed_radius, collapsed_radius)
+    ctx.rect(collapsedRadius * 0.5, collapsedRadius * 0.5, collapsedRadius, collapsedRadius)
     ctx.fill()
   }
 }
@@ -1662,24 +1653,24 @@ LGraphCanvas.prototype.drawConnections = function (ctx) {
       for (var i = 0; i < node.inputs.length; ++i) {
         var input = node.inputs[i]
         if (!input || input.link == null) { continue }
-        var link_id = input.link
-        var link = this.graph.links[ link_id ]
+        var linkId = input.link
+        var link = this.graph.links[ linkId ]
         if (!link) { continue }
 
-        var start_node = this.graph.getNodeById(link.origin_id)
-        if (start_node == null) continue
-        var start_node_slot = link.origin_slot
-        var start_node_slotpos = null
+        var startNode = this.graph.getNodeById(link.origin_id)
+        if (startNode == null) continue
+        var startNodeSlot = link.origin_slot
+        var startNodeSlotpos = null
 
-        if (start_node_slot == -1) { start_node_slotpos = [start_node.pos[0] + 10, start_node.pos[1] + 10] } else { start_node_slotpos = start_node.getConnectionPos(false, start_node_slot) }
+        if (startNodeSlot === -1) { startNodeSlotpos = [startNode.pos[0] + 10, startNode.pos[1] + 10] } else { startNodeSlotpos = startNode.getConnectionPos(false, startNodeSlot) }
 
-        this.renderLink(ctx, start_node_slotpos, node.getConnectionPos(true, i), link)
+        this.renderLink(ctx, startNodeSlotpos, node.getConnectionPos(true, i), link)
 
 // event triggered rendered on top
         if (link && link._last_time && (now - link._last_time) < 1000) {
           var f = 2.0 - (now - link._last_time) * 0.002
           var color = 'rgba(255,255,255, ' + f.toFixed(2) + ')'
-          this.renderLink(ctx, start_node_slotpos, node.getConnectionPos(true, i), link, true, f, color)
+          this.renderLink(ctx, startNodeSlotpos, node.getConnectionPos(true, i), link, true, f, color)
         }
       }
     }
@@ -1687,7 +1678,7 @@ LGraphCanvas.prototype.drawConnections = function (ctx) {
   ctx.globalAlpha = 1
 }
 
-LGraphCanvas.prototype.renderLink = function (ctx, a, b, link, skip_border, flow, color) {
+LGraphCanvas.prototype.renderLink = function (ctx, a, b, link, skipBorder, flow, color) {
   if (!this.highquality_render) {
     ctx.beginPath()
     ctx.moveTo(a[0], a[1])
@@ -1707,14 +1698,12 @@ LGraphCanvas.prototype.renderLink = function (ctx, a, b, link, skip_border, flow
 // begin line shape
   ctx.beginPath()
 
-  if (this.render_curved_connections) // splines
-{
+  if (this.render_curved_connections) { // splines
     ctx.moveTo(a[0], a[1])
     ctx.bezierCurveTo(a[0] + dist * 0.25, a[1],
-b[0] - dist * 0.25, b[1],
-b[0], b[1])
-  } else // lines
-{
+        b[0] - dist * 0.25, b[1],
+        b[0], b[1])
+  } else {   // lines
     ctx.moveTo(a[0] + 10, a[1])
     ctx.lineTo(((a[0] + 10) + (b[0] - 10)) * 0.5, a[1])
     ctx.lineTo(((a[0] + 10) + (b[0] - 10)) * 0.5, b[1])
@@ -1722,7 +1711,7 @@ b[0], b[1])
   }
 
 // rendering the outline of the connection can be a little bit slow
-  if (this.render_connections_border && this.scale > 0.6 && !skip_border) {
+  if (this.render_connections_border && this.scale > 0.6 && !skipBorder) {
     ctx.strokeStyle = 'rgba(0,0,0,0.5)'
     ctx.stroke()
   }
@@ -1806,7 +1795,7 @@ LGraphCanvas.prototype.resize = function (width, height) {
     height = parent.offsetHeight
   }
 
-  if (this.canvas.width == width && this.canvas.height == height) { return }
+  if (this.canvas.width === width && this.canvas.height === height) { return }
 
   this.canvas.width = width
   this.canvas.height = height
@@ -1853,9 +1842,9 @@ LGraphCanvas.prototype.onNodeSelectionChange = function (node) {
 
 LGraphCanvas.prototype.touchHandler = function (event) {
 // alert("foo");
-  var touches = event.changedTouches,
-    first = touches[0],
-    type = ''
+  var touches = event.changedTouches
+  var first = touches[0]
+  var type = ''
 
   switch (event.type) {
     case 'touchstart': type = 'mousedown'; break
@@ -1882,9 +1871,9 @@ LGraphCanvas.prototype.touchHandler = function (event) {
 
 /* CONTEXT MENU ********************/
 
-LGraphCanvas.onMenuAdd = function (node, options, e, prev_menu) {
+LGraphCanvas.onMenuAdd = function (node, options, e, prevMenu) {
   var canvas = LGraphCanvas.active_canvas
-  var ref_window = canvas.getCanvasWindow()
+  var refWindow = canvas.getCanvasWindow()
 
   var values = getNodeTypesCategories()
   var entries = []
@@ -1892,7 +1881,7 @@ LGraphCanvas.onMenuAdd = function (node, options, e, prev_menu) {
     if (values[i]) { entries.push({ value: values[i], content: values[i], has_submenu: true }) }
   }
 
-  var menu = new ContextMenu(entries, { event: e, callback: inner_clicked, parentMenu: prev_menu }, ref_window)
+  var menu = new ContextMenu(entries, { event: e, callback: inner_clicked, parentMenu: prevMenu }, refWindow)
 
   function inner_clicked (v, option, e) {
     var category = v.value
@@ -1900,12 +1889,12 @@ LGraphCanvas.onMenuAdd = function (node, options, e, prev_menu) {
     var values = []
     for (var i in node_types) { values.push({ content: node_types[i].title, value: node_types[i].type }) }
 
-    new ContextMenu(values, {event: e, callback: inner_create, parentMenu: menu }, ref_window)
+    new ContextMenu(values, {event: e, callback: inner_create, parentMenu: menu }, refWindow)
     return false
   }
 
   function inner_create (v, e) {
-    var first_event = prev_menu.getFirstEvent()
+    var first_event = prevMenu.getFirstEvent()
     var node = createNode(v.value)
     if (node) {
       node.pos = canvas.convertEventToCanvas(first_event)
@@ -1924,12 +1913,12 @@ LGraphCanvas.onMenuNodeEdit = function () {
 
 }
 
-LGraphCanvas.showMenuNodeOptionalInputs = function (v, options, e, prev_menu, node) {
+LGraphCanvas.showMenuNodeOptionalInputs = function (v, options_, e, prevMenu, node) {
   if (!node) { return }
 
   var that = this
   var canvas = LGraphCanvas.active_canvas
-  var ref_window = canvas.getCanvasWindow()
+  var refWindow = canvas.getCanvasWindow()
 
   var options = node.optional_inputs
   if (node.onGetInputs) { options = node.onGetInputs() }
@@ -1952,7 +1941,7 @@ LGraphCanvas.showMenuNodeOptionalInputs = function (v, options, e, prev_menu, no
 
   if (!entries.length) { return }
 
-  var menu = new ContextMenu(entries, { event: e, callback: inner_clicked, parentMenu: prev_menu, node: node }, ref_window)
+  var menu = new ContextMenu(entries, { event: e, callback: inner_clicked, parentMenu: prevMenu, node: node }, refWindow)
 
   function inner_clicked (v, e, prev) {
     if (!node) { return }
@@ -1989,7 +1978,7 @@ LGraphCanvas.showMenuNodeOptionalOutputs = function (v, options, e, prev_menu, n
       var label = entry[0]
       if (entry[2] && entry[2].label) { label = entry[2].label }
       var data = {content: label, value: entry}
-      if (entry[1] == EVENT) { data.className = 'event' }
+      if (entry[1] === CONSTANTS.EVENT) { data.className = 'event' }
       entries.push(data)
     }
   }
@@ -2414,6 +2403,19 @@ LGraphCanvas.prototype.processContextMenu = function (node, event) {
   }
 }
 
+function closeAllContextMenus (ref_window) {
+  ref_window = ref_window || window
+
+  var elements = ref_window.document.querySelectorAll('.litecontextmenu')
+  if (!elements.length) { return }
+
+  var result = []
+  for (var i = 0; i < elements.length; i++) { result.push(elements[i]) }
+
+  for (var i in result) {
+    if (result[i].close) { result[i].close() } else if (result[i].parentNode) { result[i].parentNode.removeChild(result[i]) }
+  }
+}
 
 export {
   LGraphCanvas

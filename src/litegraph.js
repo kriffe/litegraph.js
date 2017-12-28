@@ -27,11 +27,6 @@ import {CONSTANTS} from './Constants.js'
 */
 
 
-var EVENT = -1 // for outputs
-var ACTION = -1 // for inputs
-
-
-
 const proxy = null // used to redirect calls
 
 const debug = false
@@ -48,37 +43,37 @@ const Nodes = {} // node types by classname
 * @param {Class} base_class class containing the structure of a node
 */
 
-var registerNodeType = function (type, base_class) {
-  if (!base_class.prototype) { throw ('Cannot register a simple object, it must be a class with a prototype') }
-  base_class.type = type
+var registerNodeType = function (type, baseClass) {
+  if (!baseClass.prototype) { throw new Error('Cannot register a simple object, it must be a class with a prototype') }
+  baseClass.type = type
 
   if (debug) { console.log('Node registered: ' + type) }
 
   var categories = type.split('/')
-  var classname = base_class.constructor.name
+  var classname = baseClass.constructor.name
 
   var pos = type.lastIndexOf('/')
-  base_class.category = type.substr(0, pos)
+  baseClass.category = type.substr(0, pos)
 
-  if (!base_class.title) { base_class.title = classname }
+  if (!baseClass.title) { baseClass.title = classname }
 // info.name = name.substr(pos+1,name.length - pos);
 
 // extend class
-  if (base_class.prototype) // is a class
+  if (baseClass.prototype) // is a class
       {
     for (var i in LGraphNode.prototype) {
-      if (!base_class.prototype[i]) { base_class.prototype[i] = LGraphNode.prototype[i] }
+      if (!baseClass.prototype[i]) { baseClass.prototype[i] = LGraphNode.prototype[i] }
     }
   }
 
-  registered_node_types[ type ] = base_class
-  if (base_class.constructor.name) { Nodes[ classname ] = base_class }
+  registered_node_types[ type ] = baseClass
+  if (baseClass.constructor.name) { Nodes[ classname ] = baseClass }
 
 // warnings
-  if (base_class.prototype.onPropertyChange) { console.warn('LiteGraph node class ' + type + ' has onPropertyChange method, it must be called onPropertyChanged with d at the end') }
+  if (baseClass.prototype.onPropertyChange) { console.warn('LiteGraph node class ' + type + ' has onPropertyChange method, it must be called onPropertyChanged with d at the end') }
 
-  if (base_class.supported_extensions) {
-    for (var i in base_class.supported_extensions) { node_types_by_file_extension[ base_class.supported_extensions[i].toLowerCase() ] = base_class }
+  if (baseClass.supported_extensions) {
+    for (var i in baseClass.supported_extensions) { node_types_by_file_extension[ baseClass.supported_extensions[i].toLowerCase() ] = baseClass }
   }
 }
 
@@ -105,17 +100,17 @@ var addNodeMethod = function (name, func) {
 */
 
 var createNode = function (type, title, options) {
-  var base_class = registered_node_types[type]
-  if (!base_class) {
+  var BaseClass = registered_node_types[type]
+  if (!BaseClass) {
     if (debug) { console.log('GraphNode type "' + type + '" not registered.') }
     return null
   }
 
-  var prototype = base_class.prototype || base_class
+  var prototype = BaseClass.prototype || BaseClass
 
-  title = title || base_class.title || type
+  title = title || BaseClass.title || type
 
-  var node = new base_class(name)
+  var node = new BaseClass(name)
   node.type = type
 
   if (!node.title) node.title = title
@@ -157,7 +152,7 @@ var getNodeTypesInCategory = function (category) {
   for (var i in registered_node_types) {
     if (category == '') {
       if (registered_node_types[i].category == null) { r.push(registered_node_types[i]) }
-    } else if (registered_node_types[i].category == category) { r.push(registered_node_types[i]) }
+    } else if (registered_node_types[i].category === category) { r.push(registered_node_types[i]) }
   }
 
   return r
@@ -209,6 +204,50 @@ var reloadNodes = function (folder_wildcard) {
   if (debug) { console.log('Nodes reloaded') }
 }
 
+
+// *************************************************************
+//   Node CLASS                                          *******
+// *************************************************************
+
+/*
+title: string
+pos: [x,y]
+size: [x,y]
+
+input|output: every connection
++  { name:string, type:string, pos: [x,y]=Optional, direction: "input"|"output", links: Array });
+
+flags:
++ skip_title_render
++ clip_area
++ unsafe_execution: not allowed for safe execution
+
+supported callbacks:
++ onAdded: when added to graph
++ onRemoved: when removed from graph
++ onStart:when the graph starts playing
++ onStop:when the graph stops playing
++ onDrawForeground: render the inside widgets inside the node
++ onDrawBackground: render the background area inside the node (only in edit mode)
++ onMouseDown
++ onMouseMove
++ onMouseUp
++ onMouseEnter
++ onMouseLeave
++ onExecute: execute the node
++ onPropertyChanged: when a property is changed in the panel (return true to skip default behaviour)
++ onGetInputs: returns an array of possible inputs
++ onGetOutputs: returns an array of possible outputs
++ onDblClick
++ onSerialize
++ onSelected
++ onDeselected
++ onDropItem : DOM item dropped over the node
++ onDropFile : file dropped over the node
++ onConnectInput : if returns false the incoming connection will be canceled
++ onConnectionsChange : a connection changed (new one or removed) (LiteGraph.INPUT or LiteGraph.OUTPUT, slot, true if connected, link_info, input_info )
+*/
+
 //* ********************************************************************************
 // LGraph CLASS
 //* ********************************************************************************
@@ -232,8 +271,7 @@ LGraph.supported_types = ['number', 'string', 'boolean']
 // used to know which types of connections support this graph (some graphs do not allow certain types)
 LGraph.prototype.getSupportedTypes = function () { return this.supported_types || LGraph.supported_types }
 
-LGraph.STATUS_STOPPED = 1
-LGraph.STATUS_RUNNING = 2
+
 
 /**
 * Removes all nodes from this graph
@@ -242,7 +280,7 @@ LGraph.STATUS_RUNNING = 2
 
 LGraph.prototype.clear = function () {
   this.stop()
-  this.status = LGraph.STATUS_STOPPED
+  this.status = CONSTANTS.STATUS_STOPPED
   this.last_node_id = 0
 
 // nodes
@@ -290,8 +328,8 @@ LGraph.prototype.clear = function () {
 */
 
 LGraph.prototype.attachCanvas = function (graphcanvas) {
-  if (graphcanvas.constructor != LGraphCanvas) { throw ('attachCanvas expects a LGraphCanvas instance') }
-  if (graphcanvas.graph && graphcanvas.graph != this) { graphcanvas.graph.detachCanvas(graphcanvas) }
+  if (graphcanvas.constructor !== LGraphCanvas) { throw new Error('attachCanvas expects a LGraphCanvas instance') }
+  if (graphcanvas.graph && graphcanvas.graph !== this) { graphcanvas.graph.detachCanvas(graphcanvas) }
 
   graphcanvas.graph = this
   if (!this.list_of_graphcanvas) { this.list_of_graphcanvas = [] }
@@ -320,8 +358,8 @@ LGraph.prototype.detachCanvas = function (graphcanvas) {
 */
 
 LGraph.prototype.start = function (interval) {
-  if (this.status == LGraph.STATUS_RUNNING) { return }
-  this.status = LGraph.STATUS_RUNNING
+  if (this.status === CONSTANTS.STATUS_RUNNING) { return }
+  this.status = CONSTANTS.STATUS_RUNNING
 
   if (this.onPlayEvent) { this.onPlayEvent() }
 
@@ -344,9 +382,9 @@ LGraph.prototype.start = function (interval) {
 */
 
 LGraph.prototype.stop = function () {
-  if (this.status == LGraph.STATUS_STOPPED) { return }
+  if (this.status === CONSTANTS.STATUS_STOPPED) { return }
 
-  this.status = LGraph.STATUS_STOPPED
+  this.status = CONSTANTS.STATUS_STOPPED
 
   if (this.onStopEvent) { this.onStopEvent() }
 
@@ -362,7 +400,7 @@ LGraph.prototype.stop = function () {
 * @param {number} num number of steps to run, default is 1
 */
 
-LGraph.prototype.runStep = function (num, do_not_catch_errors) {
+LGraph.prototype.runStep = function (num, doNotCatchErrors) {
   num = num || 1
 
   var start = getTime()
@@ -371,7 +409,7 @@ LGraph.prototype.runStep = function (num, do_not_catch_errors) {
   var nodes = this._nodes_executable ? this._nodes_executable : this._nodes
   if (!nodes) { return }
 
-  if (do_not_catch_errors) {
+  if (doNotCatchErrors) {
 // iterations
     for (var i = 0; i < num; i++) {
       for (var j = 0, l = nodes.length; j < l; ++j) {
@@ -573,7 +611,7 @@ LGraph.prototype.sendActionToCanvas = function (action, params) {
 LGraph.prototype.add = function (node, skip_compute_order) {
   if (!node || (node.id != -1 && this._nodes_by_id[node.id] != null)) { return } // already added
 
-  if (this._nodes.length >= MAX_NUMBER_OF_NODES) { throw ('LiteGraph: max number of nodes in a graph reached') }
+  if (this._nodes.length >= CONSTANTS.MAX_NUMBER_OF_NODES) { throw ('LiteGraph: max number of nodes in a graph reached') }
 
 // give him an id
   if (node.id == null || node.id == -1) { node.id = ++this.last_node_id } else if (this.last_node_id < node.id) { this.last_node_id = node.id }
@@ -1035,337 +1073,6 @@ LGraph.prototype.onNodeTrace = function (node, msg, color) {
 // TODO
 }
 
-// *************************************************************
-//   Node CLASS                                          *******
-// *************************************************************
-
-/*
-title: string
-pos: [x,y]
-size: [x,y]
-
-input|output: every connection
-+  { name:string, type:string, pos: [x,y]=Optional, direction: "input"|"output", links: Array });
-
-flags:
-+ skip_title_render
-+ clip_area
-+ unsafe_execution: not allowed for safe execution
-
-supported callbacks:
-+ onAdded: when added to graph
-+ onRemoved: when removed from graph
-+ onStart:when the graph starts playing
-+ onStop:when the graph stops playing
-+ onDrawForeground: render the inside widgets inside the node
-+ onDrawBackground: render the background area inside the node (only in edit mode)
-+ onMouseDown
-+ onMouseMove
-+ onMouseUp
-+ onMouseEnter
-+ onMouseLeave
-+ onExecute: execute the node
-+ onPropertyChanged: when a property is changed in the panel (return true to skip default behaviour)
-+ onGetInputs: returns an array of possible inputs
-+ onGetOutputs: returns an array of possible outputs
-+ onDblClick
-+ onSerialize
-+ onSelected
-+ onDeselected
-+ onDropItem : DOM item dropped over the node
-+ onDropFile : file dropped over the node
-+ onConnectInput : if returns false the incoming connection will be canceled
-+ onConnectionsChange : a connection changed (new one or removed) (LiteGraph.INPUT or LiteGraph.OUTPUT, slot, true if connected, link_info, input_info )
-*/
-
-/* GUI elements used for canvas editing *************************************/
-
-/**
-* ContextMenu from LiteGUI
-*
-* @class ContextMenu
-* @constructor
-* @param {Array} values (allows object { title: "Nice text", callback: function ... })
-* @param {Object} options [optional] Some options:\
-* - title: title to show on top of the menu
-* - callback: function to call when an option is clicked, it receives the item information
-* - ignore_item_callbacks: ignores the callback inside the item, it just calls the options.callback
-* - event: you can pass a MouseEvent, this way the ContextMenu appears in that position
-*/
-function ContextMenu (values, options) {
-  options = options || {}
-  this.options = options
-  var that = this
-
-// to link a menu with its parent
-  if (options.parentMenu) {
-    if (options.parentMenu.constructor !== this.constructor) {
-      console.error('parentMenu must be of class ContextMenu, ignoring it')
-      options.parentMenu = null
-    } else {
-      this.parentMenu = options.parentMenu
-      this.parentMenu.lock = true
-      this.parentMenu.current_submenu = this
-    }
-  }
-
-  if (options.event && options.event.constructor !== MouseEvent && options.event.constructor !== CustomEvent) {
-    console.error('Event passed to ContextMenu is not of type MouseEvent or CustomEvent. Ignoring it.')
-    options.event = null
-  }
-
-  var root = document.createElement('div')
-  root.className = 'LiteGraph litecontextmenu litemenubar-panel'
-  root.style.minWidth = 100
-  root.style.minHeight = 100
-  root.style.pointerEvents = 'none'
-  setTimeout(function () { root.style.pointerEvents = 'auto' }, 100) // delay so the mouse up event is not caugh by this element
-
-// this prevents the default context browser menu to open in case this menu was created when pressing right button
-  root.addEventListener('mouseup', function (e) {
-    e.preventDefault(); return true
-  }, true)
-  root.addEventListener('contextmenu', function (e) {
-    if (e.button != 2) // right button
-  { return false }
-    e.preventDefault()
-    return false
-  }, true)
-
-  root.addEventListener('mousedown', function (e) {
-    if (e.button == 2) {
-      that.close()
-      e.preventDefault(); return true
-    }
-  }, true)
-
-  this.root = root
-
-// title
-  if (options.title) {
-    var element = document.createElement('div')
-    element.className = 'litemenu-title'
-    element.innerHTML = options.title
-    root.appendChild(element)
-  }
-
-// entries
-  var num = 0
-  for (var i in values) {
-    var name = values.constructor == Array ? values[i] : i
-    if (name != null && name.constructor !== String) { name = name.content === undefined ? String(name) : name.content }
-    var value = values[i]
-    this.addItem(name, value, options)
-    num++
-  }
-
-// close on leave
-  root.addEventListener('mouseleave', function (e) {
-    if (that.lock) { return }
-    that.close(e)
-  })
-
-// insert before checking position
-  var root_document = document
-  if (options.event) { root_document = options.event.target.ownerDocument }
-
-  if (!root_document) { root_document = document }
-  root_document.body.appendChild(root)
-
-// compute best position
-  var left = options.left || 0
-  var top = options.top || 0
-  if (options.event) {
-    left = (options.event.pageX - 10)
-    top = (options.event.pageY - 10)
-    if (options.title) { top -= 20 }
-
-    if (options.parentMenu) {
-      var rect = options.parentMenu.root.getBoundingClientRect()
-      left = rect.left + rect.width
-    }
-
-    var body_rect = document.body.getBoundingClientRect()
-    var root_rect = root.getBoundingClientRect()
-
-    if (left > (body_rect.width - root_rect.width - 10)) { left = (body_rect.width - root_rect.width - 10) }
-    if (top > (body_rect.height - root_rect.height - 10)) { top = (body_rect.height - root_rect.height - 10) }
-  }
-
-  root.style.left = left + 'px'
-  root.style.top = top + 'px'
-}
-
-ContextMenu.prototype.addItem = function (name, value, options) {
-  var that = this
-  options = options || {}
-
-  var element = document.createElement('div')
-  element.className = 'litemenu-entry submenu'
-
-  var disabled = false
-
-  if (value === null) {
-    element.classList.add('separator')
-// element.innerHTML = "<hr/>"
-// continue;
-  } else {
-    element.innerHTML = value && value.title ? value.title : name
-    element.value = value
-
-    if (value) {
-      if (value.disabled) {
-        disabled = true
-        element.classList.add('disabled')
-      }
-      if (value.submenu || value.has_submenu) { element.classList.add('has_submenu') }
-    }
-
-    if (typeof (value) === 'function') {
-      element.dataset['value'] = name
-      element.onclick_callback = value
-    } else { element.dataset['value'] = value }
-  }
-
-  this.root.appendChild(element)
-  if (!disabled) { element.addEventListener('click', inner_onclick) }
-  if (options.autoopen) { element.addEventListener('mouseenter', inner_over) }
-
-  function inner_over (e) {
-    var value = this.value
-    if (!value || !value.has_submenu) { return }
-    inner_onclick.call(this, e)
-  }
-
-// menu option clicked
-  function inner_onclick (e) {
-    var value = this.value
-    var close_parent = true
-
-    if (that.current_submenu) { that.current_submenu.close(e) }
-
-// global callback
-    if (options.callback) {
-      var r = options.callback.call(this, value, options, e, that, options.node)
-      if (r === true) { close_parent = false }
-    }
-
-// special cases
-    if (value) {
-      if (value.callback && !options.ignore_item_callbacks && value.disabled !== true)  // item callback
-{
-        var r = value.callback.call(this, value, options, e, that, options.node)
-        if (r === true) { close_parent = false }
-      }
-      if (value.submenu) {
-        if (!value.submenu.options) { throw ('ContextMenu submenu needs options') }
-        var submenu = new that.constructor(value.submenu.options, {
-          callback: value.submenu.callback,
-          event: e,
-          parentMenu: that,
-          ignore_item_callbacks: value.submenu.ignore_item_callbacks,
-          title: value.submenu.title,
-          autoopen: options.autoopen
-        })
-        close_parent = false
-      }
-    }
-
-    if (close_parent && !that.lock) { that.close() }
-  }
-
-  return element
-}
-
-ContextMenu.prototype.close = function (e, ignore_parent_menu) {
-  if (this.root.parentNode) { this.root.parentNode.removeChild(this.root) }
-  if (this.parentMenu && !ignore_parent_menu) {
-    this.parentMenu.lock = false
-    this.parentMenu.current_submenu = null
-    if (e === undefined) { this.parentMenu.close() } else if (e && !ContextMenu.isCursorOverElement(e, this.parentMenu.root)) {
-      ContextMenu.trigger(this.parentMenu.root, 'mouseleave', e)
-    }
-  }
-  if (this.current_submenu) { this.current_submenu.close(e, true) }
-}
-
-// this code is used to trigger events easily (used in the context menu mouseleave
-ContextMenu.trigger = function (element, event_name, params, origin) {
-  var evt = document.createEvent('CustomEvent')
-  evt.initCustomEvent(event_name, true, true, params) // canBubble, cancelable, detail
-  evt.srcElement = origin
-  if (element.dispatchEvent) { element.dispatchEvent(evt) } else if (element.__events) { element.__events.dispatchEvent(evt) }
-// else nothing seems binded here so nothing to do
-  return evt
-}
-
-// returns the top most menu
-ContextMenu.prototype.getTopMenu = function () {
-  if (this.options.parentMenu) { return this.options.parentMenu.getTopMenu() }
-  return this
-}
-
-ContextMenu.prototype.getFirstEvent = function () {
-  if (this.options.parentMenu) { return this.options.parentMenu.getFirstEvent() }
-  return this.options.event
-}
-
-ContextMenu.isCursorOverElement = function (event, element) {
-  var left = event.pageX
-  var top = event.pageY
-  var rect = element.getBoundingClientRect()
-  if (!rect) { return false }
-  if (top > rect.top && top < (rect.top + rect.height) &&
-left > rect.left && left < (rect.left + rect.width)) { return true }
-  return false
-}
-
-function closeAllContextMenus (ref_window) {
-  ref_window = ref_window || window
-
-  var elements = ref_window.document.querySelectorAll('.litecontextmenu')
-  if (!elements.length) { return }
-
-  var result = []
-  for (var i = 0; i < elements.length; i++) { result.push(elements[i]) }
-
-  for (var i in result) {
-    if (result[i].close) { result[i].close() } else if (result[i].parentNode) { result[i].parentNode.removeChild(result[i]) }
-  }
-}
-
-function extendClass (target, origin) {
-  for (var i in origin) // copy class properties
-{
-    if (target.hasOwnProperty(i)) { continue }
-    target[i] = origin[i]
-  }
-
-  if (origin.prototype) // copy prototype properties
-  {
-    for (var i in origin.prototype) // only enumerables
-{
-      if (!origin.prototype.hasOwnProperty(i)) { continue }
-
-      if (target.prototype.hasOwnProperty(i)) // avoid overwritting existing ones
-  { continue }
-
-// copy getters
-      if (origin.prototype.__lookupGetter__(i)) { target.prototype.__defineGetter__(i, origin.prototype.__lookupGetter__(i)) } else { target.prototype[i] = origin.prototype[i] }
-
-// and setters
-      if (origin.prototype.__lookupSetter__(i)) { target.prototype.__defineSetter__(i, origin.prototype.__lookupSetter__(i)) }
-    }
-  }
-}
-
-/*
-LiteGraph.createNodetypeWrapper = function( class_object )
-{
-//create Nodetype object
-}
-//LiteGraph.registerNodeType("scene/global", LGraphGlobal );
-*/
 
 if (typeof (window) !== undefined && !window['requestAnimationFrame']) {
   window.requestAnimationFrame = window.webkitRequestAnimationFrame ||
@@ -1381,8 +1088,7 @@ export {
     LGraphNode,
     LGraphCanvas,
     createNode,
-    ACTION,
-    EVENT,
+
     registerNodeType,
     allow_scripts
   }

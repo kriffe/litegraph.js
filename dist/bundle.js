@@ -61,7 +61,7 @@ var LITEGRAPH =
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 2);
+/******/ 	return __webpack_require__(__webpack_require__.s = 3);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -86,6 +86,11 @@ var CONSTANTS = {
   MAX_NUMBER_OF_NODES: 1000, // avoid infinite loops
   DEFAULT_POSITION: [100, 100], // default node position
   node_images_path: '',
+  STATUS_STOPPED: 1,
+  STATUS_RUNNING: 2,
+
+  EVENT: -1, // for outputs
+  ACTION: -1, // for inputs
 
 // enums
   INPUT: 1,
@@ -104,19 +109,139 @@ var CONSTANTS = {
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "c", function() { return LGraph; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "g", function() { return createNode; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return ACTION; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "b", function() { return EVENT; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "h", function() { return registerNodeType; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "f", function() { return allow_scripts; });
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__LGraphCanvas_js__ = __webpack_require__(3);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__LGraphNode_js__ = __webpack_require__(4);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__LGraphNode_js___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_1__LGraphNode_js__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__MathHelpers_js__ = __webpack_require__(5);
+/* unused harmony export num2hex */
+/* unused harmony export hex2num */
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "f", function() { return overlapBounding; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "d", function() { return isInsideRectangle; });
+/* unused harmony export isInsideBounding */
+/* unused harmony export colorToString */
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "b", function() { return distance; });
+/* unused harmony export compareObjects */
+/* unused harmony export growBounding */
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "c", function() { return getTime; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return cloneObject; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "e", function() { return isValidConnection; });
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__Constants_js__ = __webpack_require__(0);
+
+
+var getTime = function getTime () { return Date.now() }
+
+var compareObjects = function (a, b) {
+  for (var i in a) {
+    if (a[i] != b[i]) { return false }
+  }
+  return true
+}
+
+var distance = function (a, b) {
+  return Math.sqrt((b[0] - a[0]) * (b[0] - a[0]) + (b[1] - a[1]) * (b[1] - a[1]))
+}
+
+function colorToString (c) {
+  return 'rgba(' + Math.round(c[0] * 255).toFixed() + ',' + Math.round(c[1] * 255).toFixed() + ',' + Math.round(c[2] * 255).toFixed() + ',' + (c.length == 4 ? c[3].toFixed(2) : '1.0') + ')'
+}
+
+function isInsideRectangle (x, y, left, top, width, height) {
+  if (left < x && (left + width) > x &&
+top < y && (top + height) > y) { return true }
+  return false
+}
+
+// [minx,miny,maxx,maxy]
+function growBounding (bounding, x, y) {
+  if (x < bounding[0]) { bounding[0] = x } else if (x > bounding[2]) { bounding[2] = x }
+
+  if (y < bounding[1]) { bounding[1] = y } else if (y > bounding[3]) { bounding[3] = y }
+}
+
+// point inside boundin box
+function isInsideBounding (p, bb) {
+  if (p[0] < bb[0][0] ||
+p[1] < bb[0][1] ||
+p[0] > bb[1][0] ||
+p[1] > bb[1][1]) { return false }
+  return true
+}
+
+// boundings overlap, format: [start,end]
+function overlapBounding (a, b) {
+  if (a[0] > b[2] ||
+a[1] > b[3] ||
+a[2] < b[0] ||
+a[3] < b[1]) { return false }
+  return true
+}
+
+// Convert a hex value to its decimal value - the inputted hex must be in the
+// format of a hex triplet - the kind we use for HTML colours. The function
+// will return an array with three values.
+function hex2num (hex) {
+  if (hex.charAt(0) == '#') hex = hex.slice(1) // Remove the '#' char - if there is one.
+  hex = hex.toUpperCase()
+  var hex_alphabets = '0123456789ABCDEF'
+  var value = new Array(3)
+  var k = 0
+  var int1, int2
+  for (var i = 0; i < 6; i += 2) {
+    int1 = hex_alphabets.indexOf(hex.charAt(i))
+    int2 = hex_alphabets.indexOf(hex.charAt(i + 1))
+    value[k] = (int1 * 16) + int2
+    k++
+  }
+  return (value)
+}
+
+// Give a array with three values as the argument and the function will return
+// the corresponding hex triplet.
+function num2hex (triplet) {
+  var hex_alphabets = '0123456789ABCDEF'
+  var hex = '#'
+  var int1, int2
+  for (var i = 0; i < 3; i++) {
+    int1 = triplet[i] / 16
+    int2 = triplet[i] % 16
+
+    hex += hex_alphabets.charAt(int1) + hex_alphabets.charAt(int2)
+  }
+  return (hex)
+}
+
+// separated just to improve if it doesnt work
+var cloneObject = function (obj, target) {
+  if (obj == null) return null
+  var r = JSON.parse(JSON.stringify(obj))
+  if (!target) return r
+
+  for (var i in r) { target[i] = r[i] }
+  return target
+}
+
+var isValidConnection = function (type_a, type_b) {
+    // generic output
+  if (!type_a || !type_b || type_a == type_a || (type_a !== __WEBPACK_IMPORTED_MODULE_0__Constants_js__["a" /* CONSTANTS */].EVENT && type_b !== __WEBPACK_IMPORTED_MODULE_0__Constants_js__["a" /* CONSTANTS */].EVENT && type_a.toLowerCase() == type_b.toLowerCase())) {
+    return true
+  }
+  return false
+}
+
+
+
+
+/***/ }),
+/* 2 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "b", function() { return LGraph; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "f", function() { return createNode; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "g", function() { return registerNodeType; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "e", function() { return allow_scripts; });
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__LGraphCanvas_js__ = __webpack_require__(4);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__LGraphNode_js__ = __webpack_require__(5);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__MathHelpers_js__ = __webpack_require__(1);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__Constants_js__ = __webpack_require__(0);
-/* harmony reexport (binding) */ if(__webpack_require__.o(__WEBPACK_IMPORTED_MODULE_1__LGraphNode_js__, "LGraphNode")) __webpack_require__.d(__webpack_exports__, "e", function() { return __WEBPACK_IMPORTED_MODULE_1__LGraphNode_js__["LGraphNode"]; });
-/* harmony reexport (binding) */ __webpack_require__.d(__webpack_exports__, "d", function() { return __WEBPACK_IMPORTED_MODULE_0__LGraphCanvas_js__["a"]; });
+/* harmony reexport (binding) */ __webpack_require__.d(__webpack_exports__, "d", function() { return __WEBPACK_IMPORTED_MODULE_1__LGraphNode_js__["a"]; });
+/* harmony reexport (binding) */ __webpack_require__.d(__webpack_exports__, "c", function() { return __WEBPACK_IMPORTED_MODULE_0__LGraphCanvas_js__["a"]; });
 // *************************************************************
 //   LiteGraph CLASS                                     *******
 // *************************************************************
@@ -146,11 +271,6 @@ var CONSTANTS = {
 */
 
 
-var EVENT = -1 // for outputs
-var ACTION = -1 // for inputs
-
-
-
 const proxy = null // used to redirect calls
 
 const debug = false
@@ -167,37 +287,37 @@ const Nodes = {} // node types by classname
 * @param {Class} base_class class containing the structure of a node
 */
 
-var registerNodeType = function (type, base_class) {
-  if (!base_class.prototype) { throw ('Cannot register a simple object, it must be a class with a prototype') }
-  base_class.type = type
+var registerNodeType = function (type, baseClass) {
+  if (!baseClass.prototype) { throw new Error('Cannot register a simple object, it must be a class with a prototype') }
+  baseClass.type = type
 
   if (debug) { console.log('Node registered: ' + type) }
 
   var categories = type.split('/')
-  var classname = base_class.constructor.name
+  var classname = baseClass.constructor.name
 
   var pos = type.lastIndexOf('/')
-  base_class.category = type.substr(0, pos)
+  baseClass.category = type.substr(0, pos)
 
-  if (!base_class.title) { base_class.title = classname }
+  if (!baseClass.title) { baseClass.title = classname }
 // info.name = name.substr(pos+1,name.length - pos);
 
 // extend class
-  if (base_class.prototype) // is a class
+  if (baseClass.prototype) // is a class
       {
-    for (var i in __WEBPACK_IMPORTED_MODULE_1__LGraphNode_js__["LGraphNode"].prototype) {
-      if (!base_class.prototype[i]) { base_class.prototype[i] = __WEBPACK_IMPORTED_MODULE_1__LGraphNode_js__["LGraphNode"].prototype[i] }
+    for (var i in __WEBPACK_IMPORTED_MODULE_1__LGraphNode_js__["a" /* LGraphNode */].prototype) {
+      if (!baseClass.prototype[i]) { baseClass.prototype[i] = __WEBPACK_IMPORTED_MODULE_1__LGraphNode_js__["a" /* LGraphNode */].prototype[i] }
     }
   }
 
-  registered_node_types[ type ] = base_class
-  if (base_class.constructor.name) { Nodes[ classname ] = base_class }
+  registered_node_types[ type ] = baseClass
+  if (baseClass.constructor.name) { Nodes[ classname ] = baseClass }
 
 // warnings
-  if (base_class.prototype.onPropertyChange) { console.warn('LiteGraph node class ' + type + ' has onPropertyChange method, it must be called onPropertyChanged with d at the end') }
+  if (baseClass.prototype.onPropertyChange) { console.warn('LiteGraph node class ' + type + ' has onPropertyChange method, it must be called onPropertyChanged with d at the end') }
 
-  if (base_class.supported_extensions) {
-    for (var i in base_class.supported_extensions) { node_types_by_file_extension[ base_class.supported_extensions[i].toLowerCase() ] = base_class }
+  if (baseClass.supported_extensions) {
+    for (var i in baseClass.supported_extensions) { node_types_by_file_extension[ baseClass.supported_extensions[i].toLowerCase() ] = baseClass }
   }
 }
 
@@ -208,7 +328,7 @@ var registerNodeType = function (type, base_class) {
 * @param {Function} func
 */
 var addNodeMethod = function (name, func) {
-  __WEBPACK_IMPORTED_MODULE_1__LGraphNode_js__["LGraphNode"].prototype[name] = func
+  __WEBPACK_IMPORTED_MODULE_1__LGraphNode_js__["a" /* LGraphNode */].prototype[name] = func
   for (var i in registered_node_types) {
     var type = registered_node_types[i]
     if (type.prototype[name]) { type.prototype['_' + name] = type.prototype[name] } // keep old in case of replacing
@@ -224,17 +344,17 @@ var addNodeMethod = function (name, func) {
 */
 
 var createNode = function (type, title, options) {
-  var base_class = registered_node_types[type]
-  if (!base_class) {
+  var BaseClass = registered_node_types[type]
+  if (!BaseClass) {
     if (debug) { console.log('GraphNode type "' + type + '" not registered.') }
     return null
   }
 
-  var prototype = base_class.prototype || base_class
+  var prototype = BaseClass.prototype || BaseClass
 
-  title = title || base_class.title || type
+  title = title || BaseClass.title || type
 
-  var node = new base_class(name)
+  var node = new BaseClass(name)
   node.type = type
 
   if (!node.title) node.title = title
@@ -276,7 +396,7 @@ var getNodeTypesInCategory = function (category) {
   for (var i in registered_node_types) {
     if (category == '') {
       if (registered_node_types[i].category == null) { r.push(registered_node_types[i]) }
-    } else if (registered_node_types[i].category == category) { r.push(registered_node_types[i]) }
+    } else if (registered_node_types[i].category === category) { r.push(registered_node_types[i]) }
   }
 
   return r
@@ -328,6 +448,50 @@ var reloadNodes = function (folder_wildcard) {
   if (debug) { console.log('Nodes reloaded') }
 }
 
+
+// *************************************************************
+//   Node CLASS                                          *******
+// *************************************************************
+
+/*
+title: string
+pos: [x,y]
+size: [x,y]
+
+input|output: every connection
++  { name:string, type:string, pos: [x,y]=Optional, direction: "input"|"output", links: Array });
+
+flags:
++ skip_title_render
++ clip_area
++ unsafe_execution: not allowed for safe execution
+
+supported callbacks:
++ onAdded: when added to graph
++ onRemoved: when removed from graph
++ onStart:when the graph starts playing
++ onStop:when the graph stops playing
++ onDrawForeground: render the inside widgets inside the node
++ onDrawBackground: render the background area inside the node (only in edit mode)
++ onMouseDown
++ onMouseMove
++ onMouseUp
++ onMouseEnter
++ onMouseLeave
++ onExecute: execute the node
++ onPropertyChanged: when a property is changed in the panel (return true to skip default behaviour)
++ onGetInputs: returns an array of possible inputs
++ onGetOutputs: returns an array of possible outputs
++ onDblClick
++ onSerialize
++ onSelected
++ onDeselected
++ onDropItem : DOM item dropped over the node
++ onDropFile : file dropped over the node
++ onConnectInput : if returns false the incoming connection will be canceled
++ onConnectionsChange : a connection changed (new one or removed) (LiteGraph.INPUT or LiteGraph.OUTPUT, slot, true if connected, link_info, input_info )
+*/
+
 //* ********************************************************************************
 // LGraph CLASS
 //* ********************************************************************************
@@ -351,8 +515,7 @@ LGraph.supported_types = ['number', 'string', 'boolean']
 // used to know which types of connections support this graph (some graphs do not allow certain types)
 LGraph.prototype.getSupportedTypes = function () { return this.supported_types || LGraph.supported_types }
 
-LGraph.STATUS_STOPPED = 1
-LGraph.STATUS_RUNNING = 2
+
 
 /**
 * Removes all nodes from this graph
@@ -361,7 +524,7 @@ LGraph.STATUS_RUNNING = 2
 
 LGraph.prototype.clear = function () {
   this.stop()
-  this.status = LGraph.STATUS_STOPPED
+  this.status = __WEBPACK_IMPORTED_MODULE_3__Constants_js__["a" /* CONSTANTS */].STATUS_STOPPED
   this.last_node_id = 0
 
 // nodes
@@ -409,8 +572,8 @@ LGraph.prototype.clear = function () {
 */
 
 LGraph.prototype.attachCanvas = function (graphcanvas) {
-  if (graphcanvas.constructor != __WEBPACK_IMPORTED_MODULE_0__LGraphCanvas_js__["a" /* LGraphCanvas */]) { throw ('attachCanvas expects a LGraphCanvas instance') }
-  if (graphcanvas.graph && graphcanvas.graph != this) { graphcanvas.graph.detachCanvas(graphcanvas) }
+  if (graphcanvas.constructor !== __WEBPACK_IMPORTED_MODULE_0__LGraphCanvas_js__["a" /* LGraphCanvas */]) { throw new Error('attachCanvas expects a LGraphCanvas instance') }
+  if (graphcanvas.graph && graphcanvas.graph !== this) { graphcanvas.graph.detachCanvas(graphcanvas) }
 
   graphcanvas.graph = this
   if (!this.list_of_graphcanvas) { this.list_of_graphcanvas = [] }
@@ -439,15 +602,15 @@ LGraph.prototype.detachCanvas = function (graphcanvas) {
 */
 
 LGraph.prototype.start = function (interval) {
-  if (this.status == LGraph.STATUS_RUNNING) { return }
-  this.status = LGraph.STATUS_RUNNING
+  if (this.status === __WEBPACK_IMPORTED_MODULE_3__Constants_js__["a" /* CONSTANTS */].STATUS_RUNNING) { return }
+  this.status = __WEBPACK_IMPORTED_MODULE_3__Constants_js__["a" /* CONSTANTS */].STATUS_RUNNING
 
   if (this.onPlayEvent) { this.onPlayEvent() }
 
   this.sendEventToAllNodes('onStart')
 
 // launch
-  this.starttime = Object(__WEBPACK_IMPORTED_MODULE_2__MathHelpers_js__["a" /* getTime */])()
+  this.starttime = Object(__WEBPACK_IMPORTED_MODULE_2__MathHelpers_js__["c" /* getTime */])()
   interval = interval || 1
   var that = this
 
@@ -463,9 +626,9 @@ LGraph.prototype.start = function (interval) {
 */
 
 LGraph.prototype.stop = function () {
-  if (this.status == LGraph.STATUS_STOPPED) { return }
+  if (this.status === __WEBPACK_IMPORTED_MODULE_3__Constants_js__["a" /* CONSTANTS */].STATUS_STOPPED) { return }
 
-  this.status = LGraph.STATUS_STOPPED
+  this.status = __WEBPACK_IMPORTED_MODULE_3__Constants_js__["a" /* CONSTANTS */].STATUS_STOPPED
 
   if (this.onStopEvent) { this.onStopEvent() }
 
@@ -481,16 +644,16 @@ LGraph.prototype.stop = function () {
 * @param {number} num number of steps to run, default is 1
 */
 
-LGraph.prototype.runStep = function (num, do_not_catch_errors) {
+LGraph.prototype.runStep = function (num, doNotCatchErrors) {
   num = num || 1
 
-  var start = Object(__WEBPACK_IMPORTED_MODULE_2__MathHelpers_js__["a" /* getTime */])()
+  var start = Object(__WEBPACK_IMPORTED_MODULE_2__MathHelpers_js__["c" /* getTime */])()
   this.globaltime = 0.001 * (start - this.starttime)
 
   var nodes = this._nodes_executable ? this._nodes_executable : this._nodes
   if (!nodes) { return }
 
-  if (do_not_catch_errors) {
+  if (doNotCatchErrors) {
 // iterations
     for (var i = 0; i < num; i++) {
       for (var j = 0, l = nodes.length; j < l; ++j) {
@@ -526,7 +689,7 @@ LGraph.prototype.runStep = function (num, do_not_catch_errors) {
     }
   }
 
-  var elapsed = Object(__WEBPACK_IMPORTED_MODULE_2__MathHelpers_js__["a" /* getTime */])() - start
+  var elapsed = Object(__WEBPACK_IMPORTED_MODULE_2__MathHelpers_js__["c" /* getTime */])() - start
   if (elapsed == 0) { elapsed = 1 }
   this.elapsed_time = 0.001 * elapsed
   this.globaltime += 0.001 * elapsed
@@ -692,7 +855,7 @@ LGraph.prototype.sendActionToCanvas = function (action, params) {
 LGraph.prototype.add = function (node, skip_compute_order) {
   if (!node || (node.id != -1 && this._nodes_by_id[node.id] != null)) { return } // already added
 
-  if (this._nodes.length >= MAX_NUMBER_OF_NODES) { throw ('LiteGraph: max number of nodes in a graph reached') }
+  if (this._nodes.length >= __WEBPACK_IMPORTED_MODULE_3__Constants_js__["a" /* CONSTANTS */].MAX_NUMBER_OF_NODES) { throw ('LiteGraph: max number of nodes in a graph reached') }
 
 // give him an id
   if (node.id == null || node.id == -1) { node.id = ++this.last_node_id } else if (this.last_node_id < node.id) { this.last_node_id = node.id }
@@ -1154,337 +1317,6 @@ LGraph.prototype.onNodeTrace = function (node, msg, color) {
 // TODO
 }
 
-// *************************************************************
-//   Node CLASS                                          *******
-// *************************************************************
-
-/*
-title: string
-pos: [x,y]
-size: [x,y]
-
-input|output: every connection
-+  { name:string, type:string, pos: [x,y]=Optional, direction: "input"|"output", links: Array });
-
-flags:
-+ skip_title_render
-+ clip_area
-+ unsafe_execution: not allowed for safe execution
-
-supported callbacks:
-+ onAdded: when added to graph
-+ onRemoved: when removed from graph
-+ onStart:when the graph starts playing
-+ onStop:when the graph stops playing
-+ onDrawForeground: render the inside widgets inside the node
-+ onDrawBackground: render the background area inside the node (only in edit mode)
-+ onMouseDown
-+ onMouseMove
-+ onMouseUp
-+ onMouseEnter
-+ onMouseLeave
-+ onExecute: execute the node
-+ onPropertyChanged: when a property is changed in the panel (return true to skip default behaviour)
-+ onGetInputs: returns an array of possible inputs
-+ onGetOutputs: returns an array of possible outputs
-+ onDblClick
-+ onSerialize
-+ onSelected
-+ onDeselected
-+ onDropItem : DOM item dropped over the node
-+ onDropFile : file dropped over the node
-+ onConnectInput : if returns false the incoming connection will be canceled
-+ onConnectionsChange : a connection changed (new one or removed) (LiteGraph.INPUT or LiteGraph.OUTPUT, slot, true if connected, link_info, input_info )
-*/
-
-/* GUI elements used for canvas editing *************************************/
-
-/**
-* ContextMenu from LiteGUI
-*
-* @class ContextMenu
-* @constructor
-* @param {Array} values (allows object { title: "Nice text", callback: function ... })
-* @param {Object} options [optional] Some options:\
-* - title: title to show on top of the menu
-* - callback: function to call when an option is clicked, it receives the item information
-* - ignore_item_callbacks: ignores the callback inside the item, it just calls the options.callback
-* - event: you can pass a MouseEvent, this way the ContextMenu appears in that position
-*/
-function ContextMenu (values, options) {
-  options = options || {}
-  this.options = options
-  var that = this
-
-// to link a menu with its parent
-  if (options.parentMenu) {
-    if (options.parentMenu.constructor !== this.constructor) {
-      console.error('parentMenu must be of class ContextMenu, ignoring it')
-      options.parentMenu = null
-    } else {
-      this.parentMenu = options.parentMenu
-      this.parentMenu.lock = true
-      this.parentMenu.current_submenu = this
-    }
-  }
-
-  if (options.event && options.event.constructor !== MouseEvent && options.event.constructor !== CustomEvent) {
-    console.error('Event passed to ContextMenu is not of type MouseEvent or CustomEvent. Ignoring it.')
-    options.event = null
-  }
-
-  var root = document.createElement('div')
-  root.className = 'LiteGraph litecontextmenu litemenubar-panel'
-  root.style.minWidth = 100
-  root.style.minHeight = 100
-  root.style.pointerEvents = 'none'
-  setTimeout(function () { root.style.pointerEvents = 'auto' }, 100) // delay so the mouse up event is not caugh by this element
-
-// this prevents the default context browser menu to open in case this menu was created when pressing right button
-  root.addEventListener('mouseup', function (e) {
-    e.preventDefault(); return true
-  }, true)
-  root.addEventListener('contextmenu', function (e) {
-    if (e.button != 2) // right button
-  { return false }
-    e.preventDefault()
-    return false
-  }, true)
-
-  root.addEventListener('mousedown', function (e) {
-    if (e.button == 2) {
-      that.close()
-      e.preventDefault(); return true
-    }
-  }, true)
-
-  this.root = root
-
-// title
-  if (options.title) {
-    var element = document.createElement('div')
-    element.className = 'litemenu-title'
-    element.innerHTML = options.title
-    root.appendChild(element)
-  }
-
-// entries
-  var num = 0
-  for (var i in values) {
-    var name = values.constructor == Array ? values[i] : i
-    if (name != null && name.constructor !== String) { name = name.content === undefined ? String(name) : name.content }
-    var value = values[i]
-    this.addItem(name, value, options)
-    num++
-  }
-
-// close on leave
-  root.addEventListener('mouseleave', function (e) {
-    if (that.lock) { return }
-    that.close(e)
-  })
-
-// insert before checking position
-  var root_document = document
-  if (options.event) { root_document = options.event.target.ownerDocument }
-
-  if (!root_document) { root_document = document }
-  root_document.body.appendChild(root)
-
-// compute best position
-  var left = options.left || 0
-  var top = options.top || 0
-  if (options.event) {
-    left = (options.event.pageX - 10)
-    top = (options.event.pageY - 10)
-    if (options.title) { top -= 20 }
-
-    if (options.parentMenu) {
-      var rect = options.parentMenu.root.getBoundingClientRect()
-      left = rect.left + rect.width
-    }
-
-    var body_rect = document.body.getBoundingClientRect()
-    var root_rect = root.getBoundingClientRect()
-
-    if (left > (body_rect.width - root_rect.width - 10)) { left = (body_rect.width - root_rect.width - 10) }
-    if (top > (body_rect.height - root_rect.height - 10)) { top = (body_rect.height - root_rect.height - 10) }
-  }
-
-  root.style.left = left + 'px'
-  root.style.top = top + 'px'
-}
-
-ContextMenu.prototype.addItem = function (name, value, options) {
-  var that = this
-  options = options || {}
-
-  var element = document.createElement('div')
-  element.className = 'litemenu-entry submenu'
-
-  var disabled = false
-
-  if (value === null) {
-    element.classList.add('separator')
-// element.innerHTML = "<hr/>"
-// continue;
-  } else {
-    element.innerHTML = value && value.title ? value.title : name
-    element.value = value
-
-    if (value) {
-      if (value.disabled) {
-        disabled = true
-        element.classList.add('disabled')
-      }
-      if (value.submenu || value.has_submenu) { element.classList.add('has_submenu') }
-    }
-
-    if (typeof (value) === 'function') {
-      element.dataset['value'] = name
-      element.onclick_callback = value
-    } else { element.dataset['value'] = value }
-  }
-
-  this.root.appendChild(element)
-  if (!disabled) { element.addEventListener('click', inner_onclick) }
-  if (options.autoopen) { element.addEventListener('mouseenter', inner_over) }
-
-  function inner_over (e) {
-    var value = this.value
-    if (!value || !value.has_submenu) { return }
-    inner_onclick.call(this, e)
-  }
-
-// menu option clicked
-  function inner_onclick (e) {
-    var value = this.value
-    var close_parent = true
-
-    if (that.current_submenu) { that.current_submenu.close(e) }
-
-// global callback
-    if (options.callback) {
-      var r = options.callback.call(this, value, options, e, that, options.node)
-      if (r === true) { close_parent = false }
-    }
-
-// special cases
-    if (value) {
-      if (value.callback && !options.ignore_item_callbacks && value.disabled !== true)  // item callback
-{
-        var r = value.callback.call(this, value, options, e, that, options.node)
-        if (r === true) { close_parent = false }
-      }
-      if (value.submenu) {
-        if (!value.submenu.options) { throw ('ContextMenu submenu needs options') }
-        var submenu = new that.constructor(value.submenu.options, {
-          callback: value.submenu.callback,
-          event: e,
-          parentMenu: that,
-          ignore_item_callbacks: value.submenu.ignore_item_callbacks,
-          title: value.submenu.title,
-          autoopen: options.autoopen
-        })
-        close_parent = false
-      }
-    }
-
-    if (close_parent && !that.lock) { that.close() }
-  }
-
-  return element
-}
-
-ContextMenu.prototype.close = function (e, ignore_parent_menu) {
-  if (this.root.parentNode) { this.root.parentNode.removeChild(this.root) }
-  if (this.parentMenu && !ignore_parent_menu) {
-    this.parentMenu.lock = false
-    this.parentMenu.current_submenu = null
-    if (e === undefined) { this.parentMenu.close() } else if (e && !ContextMenu.isCursorOverElement(e, this.parentMenu.root)) {
-      ContextMenu.trigger(this.parentMenu.root, 'mouseleave', e)
-    }
-  }
-  if (this.current_submenu) { this.current_submenu.close(e, true) }
-}
-
-// this code is used to trigger events easily (used in the context menu mouseleave
-ContextMenu.trigger = function (element, event_name, params, origin) {
-  var evt = document.createEvent('CustomEvent')
-  evt.initCustomEvent(event_name, true, true, params) // canBubble, cancelable, detail
-  evt.srcElement = origin
-  if (element.dispatchEvent) { element.dispatchEvent(evt) } else if (element.__events) { element.__events.dispatchEvent(evt) }
-// else nothing seems binded here so nothing to do
-  return evt
-}
-
-// returns the top most menu
-ContextMenu.prototype.getTopMenu = function () {
-  if (this.options.parentMenu) { return this.options.parentMenu.getTopMenu() }
-  return this
-}
-
-ContextMenu.prototype.getFirstEvent = function () {
-  if (this.options.parentMenu) { return this.options.parentMenu.getFirstEvent() }
-  return this.options.event
-}
-
-ContextMenu.isCursorOverElement = function (event, element) {
-  var left = event.pageX
-  var top = event.pageY
-  var rect = element.getBoundingClientRect()
-  if (!rect) { return false }
-  if (top > rect.top && top < (rect.top + rect.height) &&
-left > rect.left && left < (rect.left + rect.width)) { return true }
-  return false
-}
-
-function closeAllContextMenus (ref_window) {
-  ref_window = ref_window || window
-
-  var elements = ref_window.document.querySelectorAll('.litecontextmenu')
-  if (!elements.length) { return }
-
-  var result = []
-  for (var i = 0; i < elements.length; i++) { result.push(elements[i]) }
-
-  for (var i in result) {
-    if (result[i].close) { result[i].close() } else if (result[i].parentNode) { result[i].parentNode.removeChild(result[i]) }
-  }
-}
-
-function extendClass (target, origin) {
-  for (var i in origin) // copy class properties
-{
-    if (target.hasOwnProperty(i)) { continue }
-    target[i] = origin[i]
-  }
-
-  if (origin.prototype) // copy prototype properties
-  {
-    for (var i in origin.prototype) // only enumerables
-{
-      if (!origin.prototype.hasOwnProperty(i)) { continue }
-
-      if (target.prototype.hasOwnProperty(i)) // avoid overwritting existing ones
-  { continue }
-
-// copy getters
-      if (origin.prototype.__lookupGetter__(i)) { target.prototype.__defineGetter__(i, origin.prototype.__lookupGetter__(i)) } else { target.prototype[i] = origin.prototype[i] }
-
-// and setters
-      if (origin.prototype.__lookupSetter__(i)) { target.prototype.__defineSetter__(i, origin.prototype.__lookupSetter__(i)) }
-    }
-  }
-}
-
-/*
-LiteGraph.createNodetypeWrapper = function( class_object )
-{
-//create Nodetype object
-}
-//LiteGraph.registerNodeType("scene/global", LGraphGlobal );
-*/
 
 if (typeof (window) !== undefined && !window['requestAnimationFrame']) {
   window.requestAnimationFrame = window.webkitRequestAnimationFrame ||
@@ -1499,18 +1331,18 @@ if (typeof (window) !== undefined && !window['requestAnimationFrame']) {
 
 
 /***/ }),
-/* 2 */
+/* 3 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__src_litegraph_js__ = __webpack_require__(1);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__src_litegraph_js__ = __webpack_require__(2);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__src_nodes_base_js__ = __webpack_require__(6);
-/* harmony reexport (binding) */ __webpack_require__.d(__webpack_exports__, "registerNodeType", function() { return __WEBPACK_IMPORTED_MODULE_0__src_litegraph_js__["h"]; });
-/* harmony reexport (binding) */ __webpack_require__.d(__webpack_exports__, "createNode", function() { return __WEBPACK_IMPORTED_MODULE_0__src_litegraph_js__["g"]; });
-/* harmony reexport (binding) */ __webpack_require__.d(__webpack_exports__, "LGraphCanvas", function() { return __WEBPACK_IMPORTED_MODULE_0__src_litegraph_js__["d"]; });
-/* harmony reexport (binding) */ __webpack_require__.d(__webpack_exports__, "LGraphNode", function() { return __WEBPACK_IMPORTED_MODULE_0__src_litegraph_js__["e"]; });
-/* harmony reexport (binding) */ __webpack_require__.d(__webpack_exports__, "LGraph", function() { return __WEBPACK_IMPORTED_MODULE_0__src_litegraph_js__["c"]; });
+/* harmony reexport (binding) */ __webpack_require__.d(__webpack_exports__, "registerNodeType", function() { return __WEBPACK_IMPORTED_MODULE_0__src_litegraph_js__["g"]; });
+/* harmony reexport (binding) */ __webpack_require__.d(__webpack_exports__, "createNode", function() { return __WEBPACK_IMPORTED_MODULE_0__src_litegraph_js__["f"]; });
+/* harmony reexport (binding) */ __webpack_require__.d(__webpack_exports__, "LGraphCanvas", function() { return __WEBPACK_IMPORTED_MODULE_0__src_litegraph_js__["c"]; });
+/* harmony reexport (binding) */ __webpack_require__.d(__webpack_exports__, "LGraphNode", function() { return __WEBPACK_IMPORTED_MODULE_0__src_litegraph_js__["d"]; });
+/* harmony reexport (binding) */ __webpack_require__.d(__webpack_exports__, "LGraph", function() { return __WEBPACK_IMPORTED_MODULE_0__src_litegraph_js__["b"]; });
 
 
 
@@ -1519,25 +1351,27 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 
 // LiteGraph.registerNodeType('events/delay', DelayEvent)
 
-Object(__WEBPACK_IMPORTED_MODULE_0__src_litegraph_js__["h" /* registerNodeType */])('basic/time', __WEBPACK_IMPORTED_MODULE_1__src_nodes_base_js__["g" /* Time */])
-Object(__WEBPACK_IMPORTED_MODULE_0__src_litegraph_js__["h" /* registerNodeType */])('basic/script', __WEBPACK_IMPORTED_MODULE_1__src_nodes_base_js__["e" /* NodeScript */])
-Object(__WEBPACK_IMPORTED_MODULE_0__src_litegraph_js__["h" /* registerNodeType */])('graph/subgraph', __WEBPACK_IMPORTED_MODULE_1__src_nodes_base_js__["f" /* Subgraph */])
-Object(__WEBPACK_IMPORTED_MODULE_0__src_litegraph_js__["h" /* registerNodeType */])('graph/input', __WEBPACK_IMPORTED_MODULE_1__src_nodes_base_js__["c" /* GlobalInput */])
-Object(__WEBPACK_IMPORTED_MODULE_0__src_litegraph_js__["h" /* registerNodeType */])('graph/output', __WEBPACK_IMPORTED_MODULE_1__src_nodes_base_js__["d" /* GlobalOutput */])
-Object(__WEBPACK_IMPORTED_MODULE_0__src_litegraph_js__["h" /* registerNodeType */])('basic/const', __WEBPACK_IMPORTED_MODULE_1__src_nodes_base_js__["b" /* Constant */])
-Object(__WEBPACK_IMPORTED_MODULE_0__src_litegraph_js__["h" /* registerNodeType */])('basic/watch', __WEBPACK_IMPORTED_MODULE_1__src_nodes_base_js__["h" /* Watch */])
-Object(__WEBPACK_IMPORTED_MODULE_0__src_litegraph_js__["h" /* registerNodeType */])('basic/console', __WEBPACK_IMPORTED_MODULE_1__src_nodes_base_js__["a" /* Console */])
+Object(__WEBPACK_IMPORTED_MODULE_0__src_litegraph_js__["g" /* registerNodeType */])('basic/time', __WEBPACK_IMPORTED_MODULE_1__src_nodes_base_js__["g" /* Time */])
+Object(__WEBPACK_IMPORTED_MODULE_0__src_litegraph_js__["g" /* registerNodeType */])('basic/script', __WEBPACK_IMPORTED_MODULE_1__src_nodes_base_js__["e" /* NodeScript */])
+Object(__WEBPACK_IMPORTED_MODULE_0__src_litegraph_js__["g" /* registerNodeType */])('graph/subgraph', __WEBPACK_IMPORTED_MODULE_1__src_nodes_base_js__["f" /* Subgraph */])
+Object(__WEBPACK_IMPORTED_MODULE_0__src_litegraph_js__["g" /* registerNodeType */])('graph/input', __WEBPACK_IMPORTED_MODULE_1__src_nodes_base_js__["c" /* GlobalInput */])
+Object(__WEBPACK_IMPORTED_MODULE_0__src_litegraph_js__["g" /* registerNodeType */])('graph/output', __WEBPACK_IMPORTED_MODULE_1__src_nodes_base_js__["d" /* GlobalOutput */])
+Object(__WEBPACK_IMPORTED_MODULE_0__src_litegraph_js__["g" /* registerNodeType */])('basic/const', __WEBPACK_IMPORTED_MODULE_1__src_nodes_base_js__["b" /* Constant */])
+Object(__WEBPACK_IMPORTED_MODULE_0__src_litegraph_js__["g" /* registerNodeType */])('basic/watch', __WEBPACK_IMPORTED_MODULE_1__src_nodes_base_js__["h" /* Watch */])
+Object(__WEBPACK_IMPORTED_MODULE_0__src_litegraph_js__["g" /* registerNodeType */])('basic/console', __WEBPACK_IMPORTED_MODULE_1__src_nodes_base_js__["a" /* Console */])
 
 
 
 
 /***/ }),
-/* 3 */
+/* 4 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return LGraphCanvas; });
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__Constants_js__ = __webpack_require__(0);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__MathHelpers_js__ = __webpack_require__(1);
+
 
 
 //* ********************************************************************************
@@ -2016,7 +1850,7 @@ LGraphCanvas.prototype.processMouseDown = function (e) {
           for (var i = 0, l = n.outputs.length; i < l; ++i) {
             var output = n.outputs[i]
             var link_pos = n.getConnectionPos(false, i)
-            if (isInsideRectangle(e.canvasX, e.canvasY, link_pos[0] - 10, link_pos[1] - 5, 20, 10)) {
+            if (Object(__WEBPACK_IMPORTED_MODULE_1__MathHelpers_js__["d" /* isInsideRectangle */])(e.canvasX, e.canvasY, link_pos[0] - 10, link_pos[1] - 5, 20, 10)) {
               this.connecting_node = n
               this.connecting_output = output
               this.connecting_pos = n.getConnectionPos(false, i)
@@ -2033,7 +1867,7 @@ LGraphCanvas.prototype.processMouseDown = function (e) {
           for (var i = 0, l = n.inputs.length; i < l; ++i) {
             var input = n.inputs[i]
             var link_pos = n.getConnectionPos(true, i)
-            if (isInsideRectangle(e.canvasX, e.canvasY, link_pos[0] - 10, link_pos[1] - 5, 20, 10)) {
+            if (Object(__WEBPACK_IMPORTED_MODULE_1__MathHelpers_js__["d" /* isInsideRectangle */])(e.canvasX, e.canvasY, link_pos[0] - 10, link_pos[1] - 5, 20, 10)) {
               if (input.link !== null) {
                 n.disconnectInput(i)
                 this.dirty_bgcanvas = true
@@ -2044,7 +1878,7 @@ LGraphCanvas.prototype.processMouseDown = function (e) {
         }
 
 // Search for corner
-        if (!skip_action && isInsideRectangle(e.canvasX, e.canvasY, n.pos[0] + n.size[0] - 5, n.pos[1] + n.size[1] - 5, 5, 5)) {
+        if (!skip_action && Object(__WEBPACK_IMPORTED_MODULE_1__MathHelpers_js__["d" /* isInsideRectangle */])(e.canvasX, e.canvasY, n.pos[0] + n.size[0] - 5, n.pos[1] + n.size[1] - 5, 5, 5)) {
           this.resizing_node = n
           this.canvas.style.cursor = 'se-resize'
           skip_action = true
@@ -2052,7 +1886,7 @@ LGraphCanvas.prototype.processMouseDown = function (e) {
       }
 
 // Search for corner
-      if (!skip_action && isInsideRectangle(e.canvasX, e.canvasY, n.pos[0], n.pos[1] - __WEBPACK_IMPORTED_MODULE_0__Constants_js__["a" /* CONSTANTS */].NODE_TITLE_HEIGHT, __WEBPACK_IMPORTED_MODULE_0__Constants_js__["a" /* CONSTANTS */].NODE_TITLE_HEIGHT, __WEBPACK_IMPORTED_MODULE_0__Constants_js__["a" /* CONSTANTS */].NODE_TITLE_HEIGHT)) {
+      if (!skip_action && Object(__WEBPACK_IMPORTED_MODULE_1__MathHelpers_js__["d" /* isInsideRectangle */])(e.canvasX, e.canvasY, n.pos[0], n.pos[1] - __WEBPACK_IMPORTED_MODULE_0__Constants_js__["a" /* CONSTANTS */].NODE_TITLE_HEIGHT, __WEBPACK_IMPORTED_MODULE_0__Constants_js__["a" /* CONSTANTS */].NODE_TITLE_HEIGHT, __WEBPACK_IMPORTED_MODULE_0__Constants_js__["a" /* CONSTANTS */].NODE_TITLE_HEIGHT)) {
         n.collapse()
         skip_action = true
       }
@@ -2062,7 +1896,7 @@ LGraphCanvas.prototype.processMouseDown = function (e) {
         var block_drag_node = false
 
 // double clicking
-        var now = getTime()
+        var now = Object(__WEBPACK_IMPORTED_MODULE_1__MathHelpers_js__["c" /* getTime */])()
         if ((now - this.last_mouseclick) < 300 && this.selected_nodes[n.id]) {
 // double click node
           if (n.onDblClick) { n.onDblClick(e) }
@@ -2104,7 +1938,7 @@ LGraphCanvas.prototype.processMouseDown = function (e) {
 
   this.last_mouse[0] = e.localX
   this.last_mouse[1] = e.localY
-  this.last_mouseclick = getTime()
+  this.last_mouseclick = Object(__WEBPACK_IMPORTED_MODULE_1__MathHelpers_js__["c" /* getTime */])()
   this.canvas_mouse = [e.canvasX, e.canvasY]
 
 /*
@@ -2181,13 +2015,13 @@ LGraphCanvas.prototype.processMouseMove = function (e) {
           var slot = this.isOverNodeInput(n, e.canvasX, e.canvasY, pos)
           if (slot != -1 && n.inputs[slot]) {
             var slot_type = n.inputs[slot].type
-            if (isValidConnection(this.connecting_output.type, slot_type)) { this._highlight_input = pos }
+            if (Object(__WEBPACK_IMPORTED_MODULE_1__MathHelpers_js__["e" /* isValidConnection */])(this.connecting_output.type, slot_type)) { this._highlight_input = pos }
           } else { this._highlight_input = null }
         }
       }
 
 // Search for corner
-      if (isInsideRectangle(e.canvasX, e.canvasY, n.pos[0] + n.size[0] - 5, n.pos[1] + n.size[1] - 5, 5, 5)) { this.canvas.style.cursor = 'se-resize' } else { this.canvas.style.cursor = null }
+      if (Object(__WEBPACK_IMPORTED_MODULE_1__MathHelpers_js__["d" /* isInsideRectangle */])(e.canvasX, e.canvasY, n.pos[0] + n.size[0] - 5, n.pos[1] + n.size[1] - 5, 5, 5)) { this.canvas.style.cursor = 'se-resize' } else { this.canvas.style.cursor = null }
     } else { this.canvas.style.cursor = null }
 
     if (this.node_capturing_input && this.node_capturing_input != n && this.node_capturing_input.onMouseMove) {
@@ -2219,8 +2053,8 @@ this.node_dragged.pos[1] = Math.round(this.node_dragged.pos[1]);
       this.resizing_node.size[0] += delta[0] / this.scale
       this.resizing_node.size[1] += delta[1] / this.scale
       var max_slots = Math.max(this.resizing_node.inputs ? this.resizing_node.inputs.length : 0, this.resizing_node.outputs ? this.resizing_node.outputs.length : 0)
-      if (this.resizing_node.size[1] < max_slots * NODE_SLOT_HEIGHT + 4) { this.resizing_node.size[1] = max_slots * NODE_SLOT_HEIGHT + 4 }
-      if (this.resizing_node.size[0] < NODE_MIN_WIDTH) { this.resizing_node.size[0] = NODE_MIN_WIDTH }
+      if (this.resizing_node.size[1] < max_slots * __WEBPACK_IMPORTED_MODULE_0__Constants_js__["a" /* CONSTANTS */].NODE_SLOT_HEIGHT + 4) { this.resizing_node.size[1] = max_slots * __WEBPACK_IMPORTED_MODULE_0__Constants_js__["a" /* CONSTANTS */].NODE_SLOT_HEIGHT + 4 }
+      if (this.resizing_node.size[0] < __WEBPACK_IMPORTED_MODULE_0__Constants_js__["a" /* CONSTANTS */].NODE_MIN_WIDTH) { this.resizing_node.size[0] = __WEBPACK_IMPORTED_MODULE_0__Constants_js__["a" /* CONSTANTS */].NODE_MIN_WIDTH }
 
       this.canvas.style.cursor = 'se-resize'
       this.dirty_canvas = true
@@ -2265,8 +2099,8 @@ LGraphCanvas.prototype.processMouseUp = function (e) {
 
 // node below mouse
       if (node) {
-        if (this.connecting_output.type == EVENT && this.isOverNodeBox(node, e.canvasX, e.canvasY)) {
-          this.connecting_node.connect(this.connecting_slot, node, EVENT)
+        if (this.connecting_output.type == __WEBPACK_IMPORTED_MODULE_0__Constants_js__["a" /* CONSTANTS */].EVENT && this.isOverNodeBox(node, e.canvasX, e.canvasY)) {
+          this.connecting_node.connect(this.connecting_slot, node, __WEBPACK_IMPORTED_MODULE_0__Constants_js__["a" /* CONSTANTS */].EVENT)
         } else {
 // slot below mouse? connect
           var slot = this.isOverNodeInput(node, e.canvasX, e.canvasY)
@@ -2275,7 +2109,7 @@ LGraphCanvas.prototype.processMouseUp = function (e) {
           } else { // not on top of an input
             var input = node.getInputInfo(0)
 // auto connect
-            if (this.connecting_output.type == EVENT) { this.connecting_node.connect(this.connecting_slot, node, EVENT) } else
+            if (this.connecting_output.type === __WEBPACK_IMPORTED_MODULE_0__Constants_js__["a" /* CONSTANTS */].EVENT) { this.connecting_node.connect(this.connecting_slot, node, __WEBPACK_IMPORTED_MODULE_0__Constants_js__["a" /* CONSTANTS */].EVENT) } else
 if (input && !input.link && input.type == this.connecting_output.type) // toLowerCase missing
 { this.connecting_node.connect(this.connecting_slot, node, 0) }
           }
@@ -2356,8 +2190,8 @@ this.draw();
 }
 
 LGraphCanvas.prototype.isOverNodeBox = function (node, canvasx, canvasy) {
-  var title_height = NODE_TITLE_HEIGHT
-  if (isInsideRectangle(canvasx, canvasy, node.pos[0] + 2, node.pos[1] + 2 - title_height, title_height - 4, title_height - 4)) { return true }
+  var title_height = __WEBPACK_IMPORTED_MODULE_0__Constants_js__["a" /* CONSTANTS */].NODE_TITLE_HEIGHT
+  if (Object(__WEBPACK_IMPORTED_MODULE_1__MathHelpers_js__["d" /* isInsideRectangle */])(canvasx, canvasy, node.pos[0] + 2, node.pos[1] + 2 - title_height, title_height - 4, title_height - 4)) { return true }
   return false
 }
 
@@ -2366,7 +2200,7 @@ LGraphCanvas.prototype.isOverNodeInput = function (node, canvasx, canvasy, slot_
     for (var i = 0, l = node.inputs.length; i < l; ++i) {
       var input = node.inputs[i]
       var link_pos = node.getConnectionPos(true, i)
-      if (isInsideRectangle(canvasx, canvasy, link_pos[0] - 10, link_pos[1] - 5, 20, 10)) {
+      if (Object(__WEBPACK_IMPORTED_MODULE_1__MathHelpers_js__["d" /* isInsideRectangle */])(canvasx, canvasy, link_pos[0] - 10, link_pos[1] - 5, 20, 10)) {
         if (slot_pos) {
           slot_pos[0] = link_pos[0]
           slot_pos[1] = link_pos[1]
@@ -2641,7 +2475,7 @@ LGraphCanvas.prototype.computeVisibleNodes = function () {
 // skip rendering nodes in live mode
     if (this.live_mode && !n.onDrawBackground && !n.onDrawForeground) { continue }
 
-    if (!overlapBounding(this.visible_area, n.getBounding())) { continue } // out of the visible area
+    if (!Object(__WEBPACK_IMPORTED_MODULE_1__MathHelpers_js__["f" /* overlapBounding */])(this.visible_area, n.getBounding())) { continue } // out of the visible area
 
     visible_nodes.push(n)
   }
@@ -2652,7 +2486,7 @@ LGraphCanvas.prototype.draw = function (force_canvas, force_bgcanvas) {
   if (!this.canvas) { return }
 
 // fps counting
-  var now = getTime()
+  var now = Object(__WEBPACK_IMPORTED_MODULE_1__MathHelpers_js__["c" /* getTime */])()
   this.render_time = (now - this.last_draw_time) * 0.001
   this.last_draw_time = now
 
@@ -2739,17 +2573,17 @@ LGraphCanvas.prototype.drawFrontCanvas = function () {
 // current connection
     if (this.connecting_pos != null) {
       ctx.lineWidth = this.connections_width
-      var link_color = null
+      var linkColor = null
       switch (this.connecting_output.type) {
-        case EVENT: link_color = '#F85'; break
+        case __WEBPACK_IMPORTED_MODULE_0__Constants_js__["a" /* CONSTANTS */].EVENT: linkColor = '#F85'; break
         default:
-          link_color = '#AFA'
+          linkColor = '#AFA'
       }
 // the connection being dragged by the mouse
-      this.renderLink(ctx, this.connecting_pos, [this.canvas_mouse[0], this.canvas_mouse[1]], null, false, null, link_color)
+      this.renderLink(ctx, this.connecting_pos, [this.canvas_mouse[0], this.canvas_mouse[1]], null, false, null, linkColor)
 
       ctx.beginPath()
-      if (this.connecting_output.type === EVENT) { ctx.rect((this.connecting_pos[0] - 6) + 0.5, (this.connecting_pos[1] - 5) + 0.5, 14, 10) } else { ctx.arc(this.connecting_pos[0], this.connecting_pos[1], 4, 0, Math.PI * 2) }
+      if (this.connecting_output.type === __WEBPACK_IMPORTED_MODULE_0__Constants_js__["a" /* CONSTANTS */].EVENT) { ctx.rect((this.connecting_pos[0] - 6) + 0.5, (this.connecting_pos[1] - 5) + 0.5, 14, 10) } else { ctx.arc(this.connecting_pos[0], this.connecting_pos[1], 4, 0, Math.PI * 2) }
       ctx.fill()
 
       ctx.fillStyle = '#ffcc00'
@@ -2882,7 +2716,7 @@ canvas.height != this.canvas.height) {
 LGraphCanvas.prototype.drawNode = function (node, ctx) {
   var glow = false
 
-  var color = node.color || NODE_DEFAULT_COLOR
+  var color = node.color || __WEBPACK_IMPORTED_MODULE_0__Constants_js__["a" /* CONSTANTS */].NODE_DEFAULT_COLOR
 // if (this.selected) color = "#88F";
 
   var render_title = true
@@ -2935,7 +2769,7 @@ return;
   var shape = node.shape || 'box'
   var size = new Float32Array(node.size)
   if (node.flags.collapsed) {
-    size[0] = NODE_COLLAPSED_WIDTH
+    size[0] = __WEBPACK_IMPORTED_MODULE_0__Constants_js__["a" /* CONSTANTS */].NODE_COLLAPSED_WIDTH
     size[1] = 0
   }
 
@@ -2975,7 +2809,7 @@ return;
 
         ctx.globalAlpha = editor_alpha
 // change opacity of incompatible slots
-        if (this.connecting_node && isValidConnection(slot.type && out_slot.type)) { ctx.globalAlpha = 0.4 * editor_alpha }
+        if (this.connecting_node && Object(__WEBPACK_IMPORTED_MODULE_1__MathHelpers_js__["e" /* isValidConnection */])(slot.type && out_slot.type)) { ctx.globalAlpha = 0.4 * editor_alpha }
 
         ctx.fillStyle = slot.link != null ? '#7F7' : '#AAA'
 
@@ -2985,7 +2819,7 @@ return;
 
         ctx.beginPath()
 
-        if (slot.type === EVENT) { ctx.rect((pos[0] - 6) + 0.5, (pos[1] - 5) + 0.5, 14, 10) } else { ctx.arc(pos[0], pos[1], 4, 0, Math.PI * 2) }
+        if (slot.type === __WEBPACK_IMPORTED_MODULE_0__Constants_js__["a" /* CONSTANTS */].EVENT) { ctx.rect((pos[0] - 6) + 0.5, (pos[1] - 5) + 0.5, 14, 10) } else { ctx.arc(pos[0], pos[1], 4, 0, Math.PI * 2) }
 
         ctx.fill()
 
@@ -3019,7 +2853,7 @@ return;
         ctx.beginPath()
 // ctx.rect( node.size[0] - 14,i*14,10,10);
 
-        if (slot.type === EVENT) { ctx.rect((pos[0] - 6) + 0.5, (pos[1] - 5) + 0.5, 14, 10) } else { ctx.arc(pos[0], pos[1], 4, 0, Math.PI * 2) }
+        if (slot.type === __WEBPACK_IMPORTED_MODULE_0__Constants_js__["a" /* CONSTANTS */].EVENT) { ctx.rect((pos[0] - 6) + 0.5, (pos[1] - 5) + 0.5, 14, 10) } else { ctx.arc(pos[0], pos[1], 4, 0, Math.PI * 2) }
 
 // trigger
 // if(slot.node_id != null && slot.slot == -1)
@@ -3052,38 +2886,30 @@ return;
 }
 
 /* Renders the node shape */
-LGraphCanvas.prototype.drawNodeShape = function (node, ctx, size, fgcolor, bgcolor, no_title, selected) {
+LGraphCanvas.prototype.drawNodeShape = function (node, ctx, size, fgcolor, bgcolor, noTitle, selected) {
 // bg rect
-  ctx.strokeStyle = fgcolor || NODE_DEFAULT_COLOR
-  ctx.fillStyle = bgcolor || NODE_DEFAULT_BGCOLOR
+  ctx.strokeStyle = fgcolor || __WEBPACK_IMPORTED_MODULE_0__Constants_js__["a" /* CONSTANTS */].NODE_DEFAULT_COLOR
+  ctx.fillStyle = bgcolor || __WEBPACK_IMPORTED_MODULE_0__Constants_js__["a" /* CONSTANTS */].NODE_DEFAULT_BGCOLOR
 
-/* gradient test
-var grad = ctx.createLinearGradient(0,0,0,node.size[1]);
-grad.addColorStop(0, "#AAA");
-grad.addColorStop(0.5, fgcolor || NODE_DEFAULT_COLOR);
-grad.addColorStop(1, bgcolor || NODE_DEFAULT_BGCOLOR);
-ctx.fillStyle = grad;
-// */
-
-  var title_height = NODE_TITLE_HEIGHT
+  var titleHeight = __WEBPACK_IMPORTED_MODULE_0__Constants_js__["a" /* CONSTANTS */].NODE_TITLE_HEIGHT
 
 // render depending on shape
   var shape = node.shape || 'box'
-  if (shape == 'box') {
+  if (shape === 'box') {
     ctx.beginPath()
-    ctx.rect(0, no_title ? 0 : -title_height, size[0] + 1, no_title ? size[1] : size[1] + title_height)
+    ctx.rect(0, noTitle ? 0 : -titleHeight, size[0] + 1, noTitle ? size[1] : size[1] + titleHeight)
     ctx.fill()
     ctx.shadowColor = 'transparent'
 
     if (selected) {
       ctx.strokeStyle = '#CCC'
-      ctx.strokeRect(-0.5, no_title ? -0.5 : -title_height + -0.5, size[0] + 2, no_title ? (size[1] + 2) : (size[1] + title_height + 2) - 1)
+      ctx.strokeRect(-0.5, noTitle ? -0.5 : -titleHeight + -0.5, size[0] + 2, noTitle ? (size[1] + 2) : (size[1] + titleHeight + 2) - 1)
       ctx.strokeStyle = fgcolor
     }
-  } else if (node.shape == 'round') {
-    ctx.roundRect(0, no_title ? 0 : -title_height, size[0], no_title ? size[1] : size[1] + title_height, 10)
+  } else if (node.shape === 'round') {
+    ctx.roundRect(0, noTitle ? 0 : -titleHeight, size[0], noTitle ? size[1] : size[1] + titleHeight, 10)
     ctx.fill()
-  } else if (node.shape == 'circle') {
+  } else if (node.shape === 'circle') {
     ctx.beginPath()
     ctx.arc(size[0] * 0.5, size[1] * 0.5, size[0] * 0.5, 0, Math.PI * 2)
     ctx.fill()
@@ -3101,35 +2927,35 @@ ctx.fillStyle = grad;
   if (node.onDrawBackground) { node.onDrawBackground(ctx) }
 
 // title bg (remember, it is rendered ABOVE the node
-  if (!no_title) {
-    ctx.fillStyle = fgcolor || NODE_DEFAULT_COLOR
-    var old_alpha = ctx.globalAlpha
-    ctx.globalAlpha = 0.5 * old_alpha
-    if (shape == 'box') {
+  if (!noTitle) {
+    ctx.fillStyle = fgcolor || __WEBPACK_IMPORTED_MODULE_0__Constants_js__["a" /* CONSTANTS */].NODE_DEFAULT_COLOR
+    var oldAlpha = ctx.globalAlpha
+    ctx.globalAlpha = 0.5 * oldAlpha
+    if (shape === 'box') {
       ctx.beginPath()
-      ctx.rect(0, -title_height, size[0] + 1, title_height)
+      ctx.rect(0, -titleHeight, size[0] + 1, titleHeight)
       ctx.fill()
 // ctx.stroke();
-    } else if (shape == 'round') {
-      ctx.roundRect(0, -title_height, size[0], title_height, 10, 0)
+    } else if (shape === 'round') {
+      ctx.roundRect(0, -titleHeight, size[0], titleHeight, 10, 0)
 // ctx.fillRect(0,8,size[0],NODE_TITLE_HEIGHT - 12);
       ctx.fill()
 // ctx.stroke();
     }
 
 // title box
-    ctx.fillStyle = node.boxcolor || NODE_DEFAULT_BOXCOLOR
+    ctx.fillStyle = node.boxcolor || __WEBPACK_IMPORTED_MODULE_0__Constants_js__["a" /* CONSTANTS */].NODE_DEFAULT_BOXCOLOR
     ctx.beginPath()
-    if (shape == 'round') { ctx.arc(title_height * 0.5, title_height * -0.5, (title_height - 6) * 0.5, 0, Math.PI * 2) } else { ctx.rect(3, -title_height + 3, title_height - 6, title_height - 6) }
+    if (shape === 'round') { ctx.arc(titleHeight * 0.5, titleHeight * -0.5, (titleHeight - 6) * 0.5, 0, Math.PI * 2) } else { ctx.rect(3, -titleHeight + 3, titleHeight - 6, titleHeight - 6) }
     ctx.fill()
-    ctx.globalAlpha = old_alpha
+    ctx.globalAlpha = oldAlpha
 
 // title text
     ctx.font = this.title_text_font
     var title = node.getTitle()
     if (title && this.scale > 0.5) {
-      ctx.fillStyle = NODE_TITLE_COLOR
-      ctx.fillText(title, 16, 13 - title_height)
+      ctx.fillStyle = __WEBPACK_IMPORTED_MODULE_0__Constants_js__["a" /* CONSTANTS */].NODE_TITLE_COLOR
+      ctx.fillText(title, 16, 13 - titleHeight)
     }
   }
 }
@@ -3137,56 +2963,54 @@ ctx.fillStyle = grad;
 /* Renders the node when collapsed */
 LGraphCanvas.prototype.drawNodeCollapsed = function (node, ctx, fgcolor, bgcolor) {
 // draw default collapsed shape
-  ctx.strokeStyle = fgcolor || NODE_DEFAULT_COLOR
-  ctx.fillStyle = bgcolor || NODE_DEFAULT_BGCOLOR
+  ctx.strokeStyle = fgcolor || __WEBPACK_IMPORTED_MODULE_0__Constants_js__["a" /* CONSTANTS */].NODE_DEFAULT_COLOR
+  ctx.fillStyle = bgcolor || __WEBPACK_IMPORTED_MODULE_0__Constants_js__["a" /* CONSTANTS */].NODE_DEFAULT_BGCOLOR
 
-  var collapsed_radius = NODE_COLLAPSED_RADIUS
+  var collapsedRadius = __WEBPACK_IMPORTED_MODULE_0__Constants_js__["a" /* CONSTANTS */].NODE_COLLAPSED_RADIUS
 
 // circle shape
   var shape = node.shape || 'box'
-  if (shape == 'circle') {
+  if (shape === 'circle') {
     ctx.beginPath()
-    ctx.arc(node.size[0] * 0.5, node.size[1] * 0.5, collapsed_radius, 0, Math.PI * 2)
+    ctx.arc(node.size[0] * 0.5, node.size[1] * 0.5, collapsedRadius, 0, Math.PI * 2)
     ctx.fill()
     ctx.shadowColor = 'rgba(0,0,0,0)'
     ctx.stroke()
 
-    ctx.fillStyle = node.boxcolor || NODE_DEFAULT_BOXCOLOR
+    ctx.fillStyle = node.boxcolor || __WEBPACK_IMPORTED_MODULE_0__Constants_js__["a" /* CONSTANTS */].NODE_DEFAULT_BOXCOLOR
     ctx.beginPath()
-    ctx.arc(node.size[0] * 0.5, node.size[1] * 0.5, collapsed_radius * 0.5, 0, Math.PI * 2)
+    ctx.arc(node.size[0] * 0.5, node.size[1] * 0.5, collapsedRadius * 0.5, 0, Math.PI * 2)
     ctx.fill()
-  } else if (shape == 'round') // rounded box
-{
+  } else if (shape === 'round') { // rounded box
     ctx.beginPath()
-    ctx.roundRect(node.size[0] * 0.5 - collapsed_radius, node.size[1] * 0.5 - collapsed_radius, 2 * collapsed_radius, 2 * collapsed_radius, 5)
+    ctx.roundRect(node.size[0] * 0.5 - collapsedRadius, node.size[1] * 0.5 - collapsedRadius, 2 * collapsedRadius, 2 * collapsedRadius, 5)
     ctx.fill()
     ctx.shadowColor = 'rgba(0,0,0,0)'
     ctx.stroke()
 
-    ctx.fillStyle = node.boxcolor || NODE_DEFAULT_BOXCOLOR
+    ctx.fillStyle = node.boxcolor || __WEBPACK_IMPORTED_MODULE_0__Constants_js__["a" /* CONSTANTS */].NODE_DEFAULT_BOXCOLOR
     ctx.beginPath()
-    ctx.roundRect(node.size[0] * 0.5 - collapsed_radius * 0.5, node.size[1] * 0.5 - collapsed_radius * 0.5, collapsed_radius, collapsed_radius, 2)
+    ctx.roundRect(node.size[0] * 0.5 - collapsedRadius * 0.5, node.size[1] * 0.5 - collapsedRadius * 0.5, collapsedRadius, collapsedRadius, 2)
     ctx.fill()
-  } else // flat box
-{
+  } else { // flat box
     ctx.beginPath()
 // ctx.rect(node.size[0] * 0.5 - collapsed_radius, node.size[1] * 0.5 - collapsed_radius, 2*collapsed_radius, 2*collapsed_radius);
-    ctx.rect(0, 0, node.size[0], collapsed_radius * 2)
+    ctx.rect(0, 0, node.size[0], collapsedRadius * 2)
     ctx.fill()
     ctx.shadowColor = 'rgba(0,0,0,0)'
     ctx.stroke()
 
-    ctx.fillStyle = node.boxcolor || NODE_DEFAULT_BOXCOLOR
+    ctx.fillStyle = node.boxcolor || __WEBPACK_IMPORTED_MODULE_0__Constants_js__["a" /* CONSTANTS */].NODE_DEFAULT_BOXCOLOR
     ctx.beginPath()
 // ctx.rect(node.size[0] * 0.5 - collapsed_radius*0.5, node.size[1] * 0.5 - collapsed_radius*0.5, collapsed_radius,collapsed_radius);
-    ctx.rect(collapsed_radius * 0.5, collapsed_radius * 0.5, collapsed_radius, collapsed_radius)
+    ctx.rect(collapsedRadius * 0.5, collapsedRadius * 0.5, collapsedRadius, collapsedRadius)
     ctx.fill()
   }
 }
 
 // OPTIMIZE THIS: precatch connections position instead of recomputing them every time
 LGraphCanvas.prototype.drawConnections = function (ctx) {
-  var now = getTime()
+  var now = Object(__WEBPACK_IMPORTED_MODULE_1__MathHelpers_js__["c" /* getTime */])()
 
 // draw connections
   ctx.lineWidth = this.connections_width
@@ -3202,24 +3026,24 @@ LGraphCanvas.prototype.drawConnections = function (ctx) {
       for (var i = 0; i < node.inputs.length; ++i) {
         var input = node.inputs[i]
         if (!input || input.link == null) { continue }
-        var link_id = input.link
-        var link = this.graph.links[ link_id ]
+        var linkId = input.link
+        var link = this.graph.links[ linkId ]
         if (!link) { continue }
 
-        var start_node = this.graph.getNodeById(link.origin_id)
-        if (start_node == null) continue
-        var start_node_slot = link.origin_slot
-        var start_node_slotpos = null
+        var startNode = this.graph.getNodeById(link.origin_id)
+        if (startNode == null) continue
+        var startNodeSlot = link.origin_slot
+        var startNodeSlotpos = null
 
-        if (start_node_slot == -1) { start_node_slotpos = [start_node.pos[0] + 10, start_node.pos[1] + 10] } else { start_node_slotpos = start_node.getConnectionPos(false, start_node_slot) }
+        if (startNodeSlot === -1) { startNodeSlotpos = [startNode.pos[0] + 10, startNode.pos[1] + 10] } else { startNodeSlotpos = startNode.getConnectionPos(false, startNodeSlot) }
 
-        this.renderLink(ctx, start_node_slotpos, node.getConnectionPos(true, i), link)
+        this.renderLink(ctx, startNodeSlotpos, node.getConnectionPos(true, i), link)
 
 // event triggered rendered on top
         if (link && link._last_time && (now - link._last_time) < 1000) {
           var f = 2.0 - (now - link._last_time) * 0.002
           var color = 'rgba(255,255,255, ' + f.toFixed(2) + ')'
-          this.renderLink(ctx, start_node_slotpos, node.getConnectionPos(true, i), link, true, f, color)
+          this.renderLink(ctx, startNodeSlotpos, node.getConnectionPos(true, i), link, true, f, color)
         }
       }
     }
@@ -3227,7 +3051,7 @@ LGraphCanvas.prototype.drawConnections = function (ctx) {
   ctx.globalAlpha = 1
 }
 
-LGraphCanvas.prototype.renderLink = function (ctx, a, b, link, skip_border, flow, color) {
+LGraphCanvas.prototype.renderLink = function (ctx, a, b, link, skipBorder, flow, color) {
   if (!this.highquality_render) {
     ctx.beginPath()
     ctx.moveTo(a[0], a[1])
@@ -3236,7 +3060,7 @@ LGraphCanvas.prototype.renderLink = function (ctx, a, b, link, skip_border, flow
     return
   }
 
-  var dist = distance(a, b)
+  var dist = Object(__WEBPACK_IMPORTED_MODULE_1__MathHelpers_js__["b" /* distance */])(a, b)
 
   if (this.render_connections_border && this.scale > 0.6) { ctx.lineWidth = this.connections_width + 4 }
 
@@ -3247,14 +3071,12 @@ LGraphCanvas.prototype.renderLink = function (ctx, a, b, link, skip_border, flow
 // begin line shape
   ctx.beginPath()
 
-  if (this.render_curved_connections) // splines
-{
+  if (this.render_curved_connections) { // splines
     ctx.moveTo(a[0], a[1])
     ctx.bezierCurveTo(a[0] + dist * 0.25, a[1],
-b[0] - dist * 0.25, b[1],
-b[0], b[1])
-  } else // lines
-{
+        b[0] - dist * 0.25, b[1],
+        b[0], b[1])
+  } else {   // lines
     ctx.moveTo(a[0] + 10, a[1])
     ctx.lineTo(((a[0] + 10) + (b[0] - 10)) * 0.5, a[1])
     ctx.lineTo(((a[0] + 10) + (b[0] - 10)) * 0.5, b[1])
@@ -3262,7 +3084,7 @@ b[0], b[1])
   }
 
 // rendering the outline of the connection can be a little bit slow
-  if (this.render_connections_border && this.scale > 0.6 && !skip_border) {
+  if (this.render_connections_border && this.scale > 0.6 && !skipBorder) {
     ctx.strokeStyle = 'rgba(0,0,0,0.5)'
     ctx.stroke()
   }
@@ -3300,7 +3122,7 @@ b[0], b[1])
 // render flowing points
   if (flow) {
     for (var i = 0; i < 5; ++i) {
-      var f = (getTime() * 0.001 + (i * 0.2)) % 1
+      var f = (Object(__WEBPACK_IMPORTED_MODULE_1__MathHelpers_js__["c" /* getTime */])() * 0.001 + (i * 0.2)) % 1
       var pos = this.computeConnectionPoint(a, b, f)
       ctx.beginPath()
       ctx.arc(pos[0], pos[1], 5, 0, 2 * Math.PI)
@@ -3310,7 +3132,7 @@ b[0], b[1])
 }
 
 LGraphCanvas.prototype.computeConnectionPoint = function (a, b, t) {
-  var dist = distance(a, b)
+  var dist = Object(__WEBPACK_IMPORTED_MODULE_1__MathHelpers_js__["b" /* distance */])(a, b)
   var p0 = a
   var p1 = [ a[0] + dist * 0.25, a[1] ]
   var p2 = [ b[0] - dist * 0.25, b[1] ]
@@ -3346,7 +3168,7 @@ LGraphCanvas.prototype.resize = function (width, height) {
     height = parent.offsetHeight
   }
 
-  if (this.canvas.width == width && this.canvas.height == height) { return }
+  if (this.canvas.width === width && this.canvas.height === height) { return }
 
   this.canvas.width = width
   this.canvas.height = height
@@ -3393,9 +3215,9 @@ LGraphCanvas.prototype.onNodeSelectionChange = function (node) {
 
 LGraphCanvas.prototype.touchHandler = function (event) {
 // alert("foo");
-  var touches = event.changedTouches,
-    first = touches[0],
-    type = ''
+  var touches = event.changedTouches
+  var first = touches[0]
+  var type = ''
 
   switch (event.type) {
     case 'touchstart': type = 'mousedown'; break
@@ -3422,9 +3244,9 @@ LGraphCanvas.prototype.touchHandler = function (event) {
 
 /* CONTEXT MENU ********************/
 
-LGraphCanvas.onMenuAdd = function (node, options, e, prev_menu) {
+LGraphCanvas.onMenuAdd = function (node, options, e, prevMenu) {
   var canvas = LGraphCanvas.active_canvas
-  var ref_window = canvas.getCanvasWindow()
+  var refWindow = canvas.getCanvasWindow()
 
   var values = getNodeTypesCategories()
   var entries = []
@@ -3432,7 +3254,7 @@ LGraphCanvas.onMenuAdd = function (node, options, e, prev_menu) {
     if (values[i]) { entries.push({ value: values[i], content: values[i], has_submenu: true }) }
   }
 
-  var menu = new ContextMenu(entries, { event: e, callback: inner_clicked, parentMenu: prev_menu }, ref_window)
+  var menu = new ContextMenu(entries, { event: e, callback: inner_clicked, parentMenu: prevMenu }, refWindow)
 
   function inner_clicked (v, option, e) {
     var category = v.value
@@ -3440,12 +3262,12 @@ LGraphCanvas.onMenuAdd = function (node, options, e, prev_menu) {
     var values = []
     for (var i in node_types) { values.push({ content: node_types[i].title, value: node_types[i].type }) }
 
-    new ContextMenu(values, {event: e, callback: inner_create, parentMenu: menu }, ref_window)
+    new ContextMenu(values, {event: e, callback: inner_create, parentMenu: menu }, refWindow)
     return false
   }
 
   function inner_create (v, e) {
-    var first_event = prev_menu.getFirstEvent()
+    var first_event = prevMenu.getFirstEvent()
     var node = createNode(v.value)
     if (node) {
       node.pos = canvas.convertEventToCanvas(first_event)
@@ -3464,12 +3286,12 @@ LGraphCanvas.onMenuNodeEdit = function () {
 
 }
 
-LGraphCanvas.showMenuNodeOptionalInputs = function (v, options, e, prev_menu, node) {
+LGraphCanvas.showMenuNodeOptionalInputs = function (v, options_, e, prevMenu, node) {
   if (!node) { return }
 
   var that = this
   var canvas = LGraphCanvas.active_canvas
-  var ref_window = canvas.getCanvasWindow()
+  var refWindow = canvas.getCanvasWindow()
 
   var options = node.optional_inputs
   if (node.onGetInputs) { options = node.onGetInputs() }
@@ -3492,7 +3314,7 @@ LGraphCanvas.showMenuNodeOptionalInputs = function (v, options, e, prev_menu, no
 
   if (!entries.length) { return }
 
-  var menu = new ContextMenu(entries, { event: e, callback: inner_clicked, parentMenu: prev_menu, node: node }, ref_window)
+  var menu = new ContextMenu(entries, { event: e, callback: inner_clicked, parentMenu: prevMenu, node: node }, refWindow)
 
   function inner_clicked (v, e, prev) {
     if (!node) { return }
@@ -3529,7 +3351,7 @@ LGraphCanvas.showMenuNodeOptionalOutputs = function (v, options, e, prev_menu, n
       var label = entry[0]
       if (entry[2] && entry[2].label) { label = entry[2].label }
       var data = {content: label, value: entry}
-      if (entry[1] == EVENT) { data.className = 'event' }
+      if (entry[1] === __WEBPACK_IMPORTED_MODULE_0__Constants_js__["a" /* CONSTANTS */].EVENT) { data.className = 'event' }
       entries.push(data)
     }
   }
@@ -3954,13 +3776,35 @@ LGraphCanvas.prototype.processContextMenu = function (node, event) {
   }
 }
 
+function closeAllContextMenus (ref_window) {
+  ref_window = ref_window || window
+
+  var elements = ref_window.document.querySelectorAll('.litecontextmenu')
+  if (!elements.length) { return }
+
+  var result = []
+  for (var i = 0; i < elements.length; i++) { result.push(elements[i]) }
+
+  for (var i in result) {
+    if (result[i].close) { result[i].close() } else if (result[i].parentNode) { result[i].parentNode.removeChild(result[i]) }
+  }
+}
+
 
 
 
 /***/ }),
-/* 4 */
-/***/ (function(module, exports) {
+/* 5 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
 
+"use strict";
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return LGraphNode; });
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__Constants_js__ = __webpack_require__(0);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__MathHelpers_js__ = __webpack_require__(1);
+
+
+
+var debug = false
 
 /**
 * Base Class for all the node type classes
@@ -3974,7 +3818,7 @@ function LGraphNode (title) {
 
 LGraphNode.prototype._ctor = function (title) {
   this.title = title || 'Unnamed'
-  this.size = [NODE_WIDTH, 60]
+  this.size = [__WEBPACK_IMPORTED_MODULE_0__Constants_js__["a" /* CONSTANTS */].NODE_WIDTH, 60]
   this.graph = null
 
   this._pos = new Float32Array(10, 10)
@@ -4016,9 +3860,9 @@ LGraphNode.prototype._ctor = function (title) {
 */
 LGraphNode.prototype.configure = function (info) {
   for (var j in info) {
-    if (j == 'console') { continue }
+    if (j === 'console') { continue }
 
-    if (j == 'properties') {
+    if (j === 'properties') {
 // i dont want to clone properties, I want to reuse the old container
       for (var k in info.properties) {
         this.properties[k] = info.properties[k]
@@ -4027,11 +3871,9 @@ LGraphNode.prototype.configure = function (info) {
       continue
     }
 
-    if (info[j] == null) { continue } else if (typeof (info[j]) === 'object') // object
-{
-      if (this[j] && this[j].configure) { this[j].configure(info[j]) } else { this[j] = cloneObject(info[j], this[j]) }
-    } else // value
-{ this[j] = info[j] }
+    if (info[j] == null) { continue } else if (typeof (info[j]) === 'object') {
+      if (this[j] && this[j].configure) { this[j].configure(info[j]) } else { this[j] = Object(__WEBPACK_IMPORTED_MODULE_1__MathHelpers_js__["a" /* cloneObject */])(info[j], this[j]) }
+    } else { this[j] = info[j] }
   }
 
   if (this.onConnectionsChange) {
@@ -4039,7 +3881,7 @@ LGraphNode.prototype.configure = function (info) {
       for (var i = 0; i < this.inputs.length; ++i) {
         var input = this.inputs[i]
         var link_info = this.graph.links[ input.link ]
-        this.onConnectionsChange(INPUT, i, true, link_info, input) // link_info has been created now, so its updated
+        this.onConnectionsChange(__WEBPACK_IMPORTED_MODULE_0__Constants_js__["a" /* CONSTANTS */].INPUT, i, true, link_info, input) // link_info has been created now, so its updated
       }
     }
 
@@ -4049,7 +3891,7 @@ LGraphNode.prototype.configure = function (info) {
         if (!output.links) { continue }
         for (var j = 0; j < output.links.length; ++j) {
           var link_info = this.graph.links[ output.links[j] ]
-          this.onConnectionsChange(OUTPUT, i, true, link_info, output) // link_info has been created now, so its updated
+          this.onConnectionsChange(__WEBPACK_IMPORTED_MODULE_0__Constants_js__["a" /* CONSTANTS */].OUTPUT, i, true, link_info, output) // link_info has been created now, so its updated
         }
       }
     }
@@ -4102,13 +3944,13 @@ LGraphNode.prototype.serialize = function () {
     pos: this.pos,
     size: this.size,
     data: this.data,
-    flags: cloneObject(this.flags),
+    flags: Object(__WEBPACK_IMPORTED_MODULE_1__MathHelpers_js__["a" /* cloneObject */])(this.flags),
     inputs: this.inputs,
     outputs: this.outputs,
     mode: this.mode
   }
 
-  if (this.properties) { o.properties = cloneObject(this.properties) }
+  if (this.properties) { o.properties = Object(__WEBPACK_IMPORTED_MODULE_1__MathHelpers_js__["a" /* cloneObject */])(this.properties) }
 
   if (!o.type) { o.type = this.constructor.type }
 
@@ -4124,10 +3966,11 @@ LGraphNode.prototype.serialize = function () {
 
 /* Creates a clone of this node */
 LGraphNode.prototype.clone = function () {
-  var node = createNode(this.type)
+  // var node = createNode(this.type)
+  var node = new LGraphNode(this.title)
 
 // we clone it because serialize returns shared containers
-  var data = cloneObject(this.serialize())
+  var data = Object(__WEBPACK_IMPORTED_MODULE_1__MathHelpers_js__["a" /* cloneObject */])(this.serialize())
 
 // remove links
   if (data.inputs) {
@@ -4176,7 +4019,7 @@ LGraphNode.prototype.getTitle = function () {
 LGraphNode.prototype.setOutputData = function (slot, data) {
   if (!this.outputs) { return }
 
-  if (slot == -1 || slot >= this.outputs.length) { return }
+  if (slot === -1 || slot >= this.outputs.length) { return }
 
   var output_info = this.outputs[slot]
   if (!output_info) { return }
@@ -4197,19 +4040,19 @@ LGraphNode.prototype.setOutputData = function (slot, data) {
 * retrieves the input data (data traveling through the connection) from one slot
 * @method getInputData
 * @param {number} slot
-* @param {boolean} force_update if set to true it will force the connected node of this slot to output data into this link
+* @param {boolean} forceUpdate if set to true it will force the connected node of this slot to output data into this link
 * @return {*} data or if it is not connected returns undefined
 */
-LGraphNode.prototype.getInputData = function (slot, force_update) {
+LGraphNode.prototype.getInputData = function (slot, forceUpdate) {
   if (!this.inputs) { return } // undefined;
 
   if (slot >= this.inputs.length || this.inputs[slot].link == null) { return }
 
-  var link_id = this.inputs[slot].link
-  var link = this.graph.links[ link_id ]
+  var linkId = this.inputs[slot].link
+  var link = this.graph.links[ linkId ]
 
 // used to extract data from the incomming connection
-  if (!force_update) { return link.data }
+  if (!forceUpdate) { return link.data }
 
   var node = this.graph.getNodeById(link.origin_id)
   if (!node) { return link.data }
@@ -4253,9 +4096,9 @@ LGraphNode.prototype.getInputNode = function (slot) {
   if (slot >= this.inputs.length) { return null }
   var input = this.inputs[slot]
   if (!input || !input.link) { return null }
-  var link_info = this.graph.links[ input.link ]
-  if (!link_info) { return null }
-  return this.graph.getNodeById(link_info.origin_id)
+  var linkInfo = this.graph.links[ input.link ]
+  if (!linkInfo) { return null }
+  return this.graph.getNodeById(linkInfo.origin_id)
 }
 
 /**
@@ -4302,20 +4145,20 @@ LGraphNode.prototype.isOutputConnected = function (slot) {
 * @return {array}
 */
 LGraphNode.prototype.getOutputNodes = function (slot) {
-  if (!this.outputs || this.outputs.length == 0) { return null }
+  if (!this.outputs || this.outputs.length === 0) { return null }
 
   if (slot >= this.outputs.length) { return null }
 
   var output = this.outputs[slot]
-  if (!output.links || output.links.length == 0) { return null }
+  if (!output.links || output.links.length === 0) { return null }
 
   var r = []
   for (var i = 0; i < output.links.length; i++) {
-    var link_id = output.links[i]
-    var link = this.graph.links[ link_id ]
+    var linkId = output.links[i]
+    var link = this.graph.links[ linkId ]
     if (link) {
-      var target_node = this.graph.getNodeById(link.target_id)
-      if (target_node) { r.push(target_node) }
+      var targetNode = this.graph.getNodeById(link.target_id)
+      if (targetNode) { r.push(targetNode) }
     }
   }
   return r
@@ -4330,30 +4173,28 @@ LGraphNode.prototype.getOutputNodes = function (slot) {
 LGraphNode.prototype.trigger = function (action, param) {
   if (!this.outputs || !this.outputs.length) { return }
 
-  if (this.graph) { this.graph._last_trigger_time = getTime() }
+  if (this.graph) { this.graph._last_trigger_time = Object(__WEBPACK_IMPORTED_MODULE_1__MathHelpers_js__["c" /* getTime */])() }
 
   for (var i = 0; i < this.outputs.length; ++i) {
     var output = this.outputs[i]
-    if (output.type !== EVENT || (action && output.name != action)) { continue }
+    if (output.type !== __WEBPACK_IMPORTED_MODULE_0__Constants_js__["a" /* CONSTANTS */].EVENT || (action && output.name !== action)) { continue }
 
     var links = output.links
     if (!links || !links.length) { continue }
 
 // for every link attached here
     for (var k = 0; k < links.length; ++k) {
-      var link_info = this.graph.links[ links[k] ]
-      if (!link_info) // not connected
-  { continue }
-      var node = this.graph.getNodeById(link_info.target_id)
-      if (!node) // node not found?
-  { continue }
+      var linkInfo = this.graph.links[ links[k] ]
+      if (!linkInfo) { continue } // not connected
+      var node = this.graph.getNodeById(linkInfo.target_id)
+      if (!node) { continue } // node not found?
 
 // used to mark events in graph
-      link_info._last_time = getTime()
+      linkInfo._last_time = Object(__WEBPACK_IMPORTED_MODULE_1__MathHelpers_js__["c" /* getTime */])()
 
-      var target_connection = node.inputs[ link_info.target_slot ]
+      var targetConnection = node.inputs[ linkInfo.target_slot ]
 
-      if (node.onAction) { node.onAction(target_connection.name, param) } else if (node.mode === ON_TRIGGER) {
+      if (node.onAction) { node.onAction(targetConnection.name, param) } else if (node.mode === __WEBPACK_IMPORTED_MODULE_0__Constants_js__["a" /* CONSTANTS */].ON_TRIGGER) {
         if (node.onExecute) { node.onExecute(param) }
       }
     }
@@ -4368,15 +4209,15 @@ LGraphNode.prototype.trigger = function (action, param) {
 * @param {string} type string defining the output type ("vec3","number",...)
 * @param {Object} extra_info this can be used to have special properties of the property (like values, etc)
 */
-LGraphNode.prototype.addProperty = function (name, default_value, type, extra_info) {
-  var o = { name: name, type: type, default_value: default_value }
-  if (extra_info) {
-    for (var i in extra_info) { o[i] = extra_info[i] }
+LGraphNode.prototype.addProperty = function (name, defaultValue, type, extraInfo) {
+  var o = { name: name, type: type, default_value: defaultValue }
+  if (extraInfo) {
+    for (var i in extraInfo) { o[i] = extraInfo[i] }
   }
   if (!this.properties_info) { this.properties_info = [] }
   this.properties_info.push(o)
   if (!this.properties) { this.properties = {} }
-  this.properties[ name ] = default_value
+  this.properties[ name ] = defaultValue
   return o
 }
 
@@ -4389,10 +4230,10 @@ LGraphNode.prototype.addProperty = function (name, default_value, type, extra_in
 * @param {string} type string defining the output type ("vec3","number",...)
 * @param {Object} extra_info this can be used to have special properties of an output (label, special color, position, etc)
 */
-LGraphNode.prototype.addOutput = function (name, type, extra_info) {
+LGraphNode.prototype.addOutput = function (name, type, extraInfo) {
   var o = { name: name, type: type, links: null }
-  if (extra_info) {
-    for (var i in extra_info) { o[i] = extra_info[i] }
+  if (extraInfo) {
+    for (var i in extraInfo) { o[i] = extraInfo[i] }
   }
 
   if (!this.outputs) { this.outputs = [] }
@@ -4442,11 +4283,11 @@ LGraphNode.prototype.removeOutput = function (slot) {
 * @param {string} type string defining the input type ("vec3","number",...), it its a generic one use 0
 * @param {Object} extra_info this can be used to have special properties of an input (label, color, position, etc)
 */
-LGraphNode.prototype.addInput = function (name, type, extra_info) {
+LGraphNode.prototype.addInput = function (name, type, extraInfo) {
   type = type || 0
   var o = {name: name, type: type, link: null}
-  if (extra_info) {
-    for (var i in extra_info) { o[i] = extra_info[i] }
+  if (extraInfo) {
+    for (var i in extraInfo) { o[i] = extraInfo[i] }
   }
 
   if (!this.inputs) { this.inputs = [] }
@@ -4521,17 +4362,17 @@ LGraphNode.prototype.computeSize = function (minHeight, out) {
   rows = Math.max(rows, 1)
   size[1] = rows * 14 + 6
 
-  var font_size = 14
-  var title_width = compute_text_size(this.title)
-  var input_width = 0
-  var output_width = 0
+  var fontSize = 14
+  var titleWidth = compute_text_size(this.title)
+  var inputWidth = 0
+  var outputWidth = 0
 
   if (this.inputs) {
     for (var i = 0, l = this.inputs.length; i < l; ++i) {
       var input = this.inputs[i]
       var text = input.label || input.name || ''
-      var text_width = compute_text_size(text)
-      if (input_width < text_width) { input_width = text_width }
+      var textWidth = compute_text_size(text)
+      if (inputWidth < textWidth) { inputWidth = textWidth }
     }
   }
 
@@ -4539,17 +4380,17 @@ LGraphNode.prototype.computeSize = function (minHeight, out) {
     for (var i = 0, l = this.outputs.length; i < l; ++i) {
       var output = this.outputs[i]
       var text = output.label || output.name || ''
-      var text_width = compute_text_size(text)
-      if (output_width < text_width) { output_width = text_width }
+      var textWidth = compute_text_size(text)
+      if (outputWidth < textWidth) { outputWidth = textWidth }
     }
   }
 
-  size[0] = Math.max(input_width + output_width + 10, title_width)
-  size[0] = Math.max(size[0], NODE_WIDTH)
+  size[0] = Math.max(inputWidth + outputWidth + 10, titleWidth)
+  size[0] = Math.max(size[0], __WEBPACK_IMPORTED_MODULE_0__Constants_js__["a" /* CONSTANTS */].NODE_WIDTH)
 
   function compute_text_size (text) {
     if (!text) { return 0 }
-    return font_size * text.length * 0.6
+    return fontSize * text.length * 0.6
   }
 
   return size
@@ -4561,7 +4402,7 @@ LGraphNode.prototype.computeSize = function (minHeight, out) {
 * @return {Float32Array[4]} the total size
 */
 LGraphNode.prototype.getBounding = function () {
-  return new Float32Array([this.pos[0] - 4, this.pos[1] - NODE_TITLE_HEIGHT, this.pos[0] + this.size[0] + 4, this.pos[1] + this.size[1] + LGraph.NODE_TITLE_HEIGHT])
+  return new Float32Array([this.pos[0] - 4, this.pos[1] - __WEBPACK_IMPORTED_MODULE_0__Constants_js__["a" /* CONSTANTS */].NODE_TITLE_HEIGHT, this.pos[0] + this.size[0] + 4, this.pos[1] + this.size[1] + __WEBPACK_IMPORTED_MODULE_0__Constants_js__["a" /* CONSTANTS */].NODE_TITLE_HEIGHT])
 }
 
 /**
@@ -4574,12 +4415,12 @@ LGraphNode.prototype.getBounding = function () {
 LGraphNode.prototype.isPointInsideNode = function (x, y, margin) {
   margin = margin || 0
 
-  var margin_top = this.graph && this.graph.isLive() ? 0 : 20
+  var marginTop = this.graph && this.graph.isLive() ? 0 : 20
   if (this.flags.collapsed) {
 // if ( distance([x,y], [this.pos[0] + this.size[0]*0.5, this.pos[1] + this.size[1]*0.5]) < .NODE_COLLAPSED_RADIUS)
-    if (isInsideRectangle(x, y, this.pos[0] - margin, this.pos[1] - NODE_TITLE_HEIGHT - margin, NODE_COLLAPSED_WIDTH + 2 * margin, NODE_TITLE_HEIGHT + 2 * margin)) { return true }
+    if (Object(__WEBPACK_IMPORTED_MODULE_1__MathHelpers_js__["d" /* isInsideRectangle */])(x, y, this.pos[0] - margin, this.pos[1] - __WEBPACK_IMPORTED_MODULE_0__Constants_js__["a" /* CONSTANTS */].NODE_TITLE_HEIGHT - margin, __WEBPACK_IMPORTED_MODULE_0__Constants_js__["a" /* CONSTANTS */].NODE_COLLAPSED_WIDTH + 2 * margin, __WEBPACK_IMPORTED_MODULE_0__Constants_js__["a" /* CONSTANTS */].NODE_TITLE_HEIGHT + 2 * margin)) { return true }
   } else if ((this.pos[0] - 4 - margin) < x && (this.pos[0] + this.size[0] + 4 + margin) > x &&
-(this.pos[1] - margin_top - margin) < y && (this.pos[1] + this.size[1] + margin) > y) { return true }
+(this.pos[1] - marginTop - margin) < y && (this.pos[1] + this.size[1] + margin) > y) { return true }
   return false
 }
 
@@ -4595,16 +4436,16 @@ LGraphNode.prototype.getSlotInPosition = function (x, y) {
   if (this.inputs) {
     for (var i = 0, l = this.inputs.length; i < l; ++i) {
       var input = this.inputs[i]
-      var link_pos = this.getConnectionPos(true, i)
-      if (isInsideRectangle(x, y, link_pos[0] - 10, link_pos[1] - 5, 20, 10)) { return { input: input, slot: i, link_pos: link_pos, locked: input.locked } }
+      var linkPos = this.getConnectionPos(true, i)
+      if (Object(__WEBPACK_IMPORTED_MODULE_1__MathHelpers_js__["d" /* isInsideRectangle */])(x, y, linkPos[0] - 10, linkPos[1] - 5, 20, 10)) { return { input: input, slot: i, link_pos: linkPos, locked: input.locked } }
     }
   }
 
   if (this.outputs) {
     for (var i = 0, l = this.outputs.length; i < l; ++i) {
       var output = this.outputs[i]
-      var link_pos = this.getConnectionPos(false, i)
-      if (isInsideRectangle(x, y, link_pos[0] - 10, link_pos[1] - 5, 20, 10)) { return { output: output, slot: i, link_pos: link_pos, locked: output.locked } }
+      var linkPos = this.getConnectionPos(false, i)
+      if (Object(__WEBPACK_IMPORTED_MODULE_1__MathHelpers_js__["d" /* isInsideRectangle */])(x, y, linkPos[0] - 10, linkPos[1] - 5, 20, 10)) { return { output: output, slot: i, link_pos: linkPos, locked: output.locked } }
     }
   }
 
@@ -4620,7 +4461,7 @@ LGraphNode.prototype.getSlotInPosition = function (x, y) {
 LGraphNode.prototype.findInputSlot = function (name) {
   if (!this.inputs) { return -1 }
   for (var i = 0, l = this.inputs.length; i < l; ++i) {
-    if (name == this.inputs[i].name) { return i }
+    if (name === this.inputs[i].name) { return i }
   }
   return -1
 }
@@ -4634,7 +4475,7 @@ LGraphNode.prototype.findInputSlot = function (name) {
 LGraphNode.prototype.findOutputSlot = function (name) {
   if (!this.outputs) return -1
   for (var i = 0, l = this.outputs.length; i < l; ++i) {
-    if (name == this.outputs[i].name) { return i }
+    if (name === this.outputs[i].name) { return i }
   }
   return -1
 }
@@ -4647,8 +4488,8 @@ LGraphNode.prototype.findOutputSlot = function (name) {
 * @param {number_or_string} target_slot the input slot of the target node (could be the number of the slot or the string with the name of the slot, or -1 to connect a trigger)
 * @return {boolean} if it was connected succesfully
 */
-LGraphNode.prototype.connect = function (slot, target_node, target_slot) {
-  target_slot = target_slot || 0
+LGraphNode.prototype.connect = function (slot, targetNode, targetSlot) {
+  targetSlot = targetSlot || 0
 
 // seek for the output slot
   if (slot.constructor === String) {
@@ -4662,20 +4503,20 @@ LGraphNode.prototype.connect = function (slot, target_node, target_slot) {
     return false
   }
 
-  if (target_node && target_node.constructor === Number) { target_node = this.graph.getNodeById(target_node) }
-  if (!target_node) { throw ('Node not found') }
+  if (targetNode && targetNode.constructor === Number) { targetNode = this.graph.getNodeById(targetNode) }
+  if (!targetNode) { throw new Error('Node not found') }
 
 // avoid loopback
-  if (target_node == this) { return false }
+  if (targetNode === this) { return false }
 
 // you can specify the slot by name
-  if (target_slot.constructor === String) {
-    target_slot = target_node.findInputSlot(target_slot)
-    if (target_slot == -1) {
-      if (debug) { console.log('Connect: Error, no slot of name ' + target_slot) }
+  if (targetSlot.constructor === String) {
+    targetSlot = targetNode.findInputSlot(targetSlot)
+    if (targetSlot === -1) {
+      if (debug) { console.log('Connect: Error, no slot of name ' + targetSlot) }
       return false
     }
-  } else if (target_slot === EVENT) {
+  } else if (targetSlot === __WEBPACK_IMPORTED_MODULE_0__Constants_js__["a" /* CONSTANTS */].EVENT) {
 // search for first slot with event?
 /*
 //create input for trigger
@@ -4684,13 +4525,13 @@ target_slot = target_node.inputs.length - 1; //last one is the one created
 target_node.mode = ON_TRIGGER;
 */
     return false
-  } else if (!target_node.inputs || target_slot >= target_node.inputs.length) {
+  } else if (!targetNode.inputs || targetSlot >= targetNode.inputs.length) {
     if (debug) { console.log('Connect: Error, slot number not found') }
     return false
   }
 
 // if there is something already plugged there, disconnect
-  if (target_node.inputs[ target_slot ].link != null) { target_node.disconnectInput(target_slot) }
+  if (targetNode.inputs[ targetSlot ].link != null) { targetNode.disconnectInput(targetSlot) }
 
 // why here??
   this.setDirtyCanvas(false, true)
@@ -4699,20 +4540,20 @@ target_node.mode = ON_TRIGGER;
   var output = this.outputs[slot]
 
 // allows nodes to block connection
-  if (target_node.onConnectInput) {
-    if (target_node.onConnectInput(target_slot, output.type, output) === false) { return false }
+  if (targetNode.onConnectInput) {
+    if (targetNode.onConnectInput(targetSlot, output.type, output) === false) { return false }
   }
 
-  var input = target_node.inputs[target_slot]
+  var input = targetNode.inputs[targetSlot]
 
-  if (isValidConnection(output.type, input.type)) {
+  if (Object(__WEBPACK_IMPORTED_MODULE_1__MathHelpers_js__["e" /* isValidConnection */])(output.type, input.type)) {
     var link_info = {
       id: this.graph.last_link_id++,
       type: input.type,
       origin_id: this.id,
       origin_slot: slot,
-      target_id: target_node.id,
-      target_slot: target_slot
+      target_id: targetNode.id,
+      target_slot: targetSlot
     }
 
 // add to graph links list
@@ -4722,10 +4563,10 @@ target_node.mode = ON_TRIGGER;
     if (output.links == null) { output.links = [] }
     output.links.push(link_info.id)
 // connect in input
-    target_node.inputs[target_slot].link = link_info.id
+    targetNode.inputs[targetSlot].link = link_info.id
 
     if (this.onConnectionsChange) { this.onConnectionsChange(OUTPUT, slot, true, link_info, output) } // link_info has been created now, so its updated
-    if (target_node.onConnectionsChange) { target_node.onConnectionsChange(INPUT, target_slot, true, link_info, input) }
+    if (targetNode.onConnectionsChange) { targetNode.onConnectionsChange(INPUT, targetSlot, true, link_info, input) }
   }
 
   this.setDirtyCanvas(false, true)
@@ -4741,7 +4582,7 @@ target_node.mode = ON_TRIGGER;
 * @param {LGraphNode} target_node the target node to which this slot is connected [Optional, if not target_node is specified all nodes will be disconnected]
 * @return {boolean} if it was disconnected succesfully
 */
-LGraphNode.prototype.disconnectOutput = function (slot, target_node) {
+LGraphNode.prototype.disconnectOutput = function (slot, targetNode) {
   if (slot.constructor === String) {
     slot = this.findOutputSlot(slot)
     if (slot == -1) {
@@ -4755,43 +4596,43 @@ LGraphNode.prototype.disconnectOutput = function (slot, target_node) {
 
 // get output slot
   var output = this.outputs[slot]
-  if (!output.links || output.links.length == 0) { return false }
+  if (!output.links || output.links.length === 0) { return false }
 
 // one of the links
-  if (target_node) {
-    if (target_node.constructor === Number) { target_node = this.graph.getNodeById(target_node) }
-    if (!target_node) { throw ('Target Node not found') }
+  if (targetNode) {
+    if (targetNode.constructor === Number) { targetNode = this.graph.getNodeById(targetNode) }
+    if (!targetNode) { throw new Error('Target Node not found') }
 
     for (var i = 0, l = output.links.length; i < l; i++) {
-      var link_id = output.links[i]
-      var link_info = this.graph.links[ link_id ]
+      var linkId = output.links[i]
+      var linkInfo = this.graph.links[ linkId ]
 
 // is the link we are searching for...
-      if (link_info.target_id == target_node.id) {
+      if (linkInfo.target_id == targetNode.id) {
         output.links.splice(i, 1) // remove here
-        var input = target_node.inputs[ link_info.target_slot ]
+        var input = targetNode.inputs[ linkInfo.target_slot ]
         input.link = null // remove there
-        delete this.graph.links[ link_id ] // remove the link from the links pool
-        if (target_node.onConnectionsChange) { target_node.onConnectionsChange(INPUT, link_info.target_slot, false, link_info, input) } // link_info hasnt been modified so its ok
-        if (this.onConnectionsChange) { this.onConnectionsChange(OUTPUT, slot, false, link_info, output) }
+        delete this.graph.links[ linkId ] // remove the link from the links pool
+        if (targetNode.onConnectionsChange) { targetNode.onConnectionsChange(__WEBPACK_IMPORTED_MODULE_0__Constants_js__["a" /* CONSTANTS */].INPUT, linkInfo.target_slot, false, linkInfo, input) } // link_info hasnt been modified so its ok
+        if (this.onConnectionsChange) { this.onConnectionsChange(__WEBPACK_IMPORTED_MODULE_0__Constants_js__["a" /* CONSTANTS */].OUTPUT, slot, false, linkInfo, output) }
         break
       }
     }
   } else // all the links
 {
     for (var i = 0, l = output.links.length; i < l; i++) {
-      var link_id = output.links[i]
-      var link_info = this.graph.links[ link_id ]
+      var linkId = output.links[i]
+      var linkInfo = this.graph.links[ linkId ]
 
-      var target_node = this.graph.getNodeById(link_info.target_id)
+      var targetNode = this.graph.getNodeById(linkInfo.target_id)
       var input = null
-      if (target_node) {
-        input = target_node.inputs[ link_info.target_slot ]
+      if (targetNode) {
+        input = targetNode.inputs[ linkInfo.target_slot ]
         input.link = null // remove other side link
       }
-      delete this.graph.links[ link_id ] // remove the link from the links pool
-      if (target_node.onConnectionsChange) { target_node.onConnectionsChange(INPUT, link_info.target_slot, false, link_info, input) } // link_info hasnt been modified so its ok
-      if (this.onConnectionsChange) { this.onConnectionsChange(OUTPUT, slot, false, link_info, output) }
+      delete this.graph.links[ linkId ] // remove the link from the links pool
+      if (targetNode.onConnectionsChange) { targetNode.onConnectionsChange(__WEBPACK_IMPORTED_MODULE_0__Constants_js__["a" /* CONSTANTS */].INPUT, linkInfo.target_slot, false, linkInfo, input) } // link_info hasnt been modified so its ok
+      if (this.onConnectionsChange) { this.onConnectionsChange(__WEBPACK_IMPORTED_MODULE_0__Constants_js__["a" /* CONSTANTS */].OUTPUT, slot, false, linkInfo, output) }
     }
     output.links = null
   }
@@ -4811,7 +4652,7 @@ LGraphNode.prototype.disconnectInput = function (slot) {
 // seek for the output slot
   if (slot.constructor === String) {
     slot = this.findInputSlot(slot)
-    if (slot == -1) {
+    if (slot === -1) {
       if (debug) { console.log('Connect: Error, no slot of name ' + slot) }
       return false
     }
@@ -4823,30 +4664,30 @@ LGraphNode.prototype.disconnectInput = function (slot) {
   var input = this.inputs[slot]
   if (!input) { return false }
 
-  var link_id = this.inputs[slot].link
+  var linkId = this.inputs[slot].link
   this.inputs[slot].link = null
 
 // remove other side
-  var link_info = this.graph.links[ link_id ]
-  if (link_info) {
-    var target_node = this.graph.getNodeById(link_info.origin_id)
+  var linkInfo = this.graph.links[ linkId ]
+  if (linkInfo) {
+    var target_node = this.graph.getNodeById(linkInfo.origin_id)
     if (!target_node) { return false }
 
-    var output = target_node.outputs[ link_info.origin_slot ]
+    var output = target_node.outputs[ linkInfo.origin_slot ]
     if (!output || !output.links || output.links.length == 0) { return false }
 
 // search in the inputs list for this link
     for (var i = 0, l = output.links.length; i < l; i++) {
-      var link_id = output.links[i]
-      var link_info = this.graph.links[ link_id ]
-      if (link_info.target_id == this.id) {
+      var linkId = output.links[i]
+      var linkInfo = this.graph.links[ linkId ]
+      if (linkInfo.target_id == this.id) {
         output.links.splice(i, 1)
         break
       }
     }
 
-    if (this.onConnectionsChange) { this.onConnectionsChange(INPUT, slot, false, link_info, input) }
-    if (target_node.onConnectionsChange) { target_node.onConnectionsChange(OUTPUT, i, false, link_info, output) }
+    if (this.onConnectionsChange) { this.onConnectionsChange(INPUT, slot, false, linkInfo, input) }
+    if (target_node.onConnectionsChange) { target_node.onConnectionsChange(OUTPUT, i, false, linkInfo, output) }
   }
 
   this.setDirtyCanvas(false, true)
@@ -4861,47 +4702,46 @@ LGraphNode.prototype.disconnectInput = function (slot) {
 * @param {number_or_string} slot (could be the number of the slot or the string with the name of the slot)
 * @return {[x,y]} the position
 **/
-LGraphNode.prototype.getConnectionPos = function (is_input, slot_number) {
+LGraphNode.prototype.getConnectionPos = function (isInput, slotNumber) {
   if (this.flags.collapsed) {
-    if (is_input) { return [this.pos[0], this.pos[1] - NODE_TITLE_HEIGHT * 0.5] } else { return [this.pos[0] + NODE_COLLAPSED_WIDTH, this.pos[1] - NODE_TITLE_HEIGHT * 0.5] }
+    if (isInput) { return [this.pos[0], this.pos[1] - __WEBPACK_IMPORTED_MODULE_0__Constants_js__["a" /* CONSTANTS */].NODE_TITLE_HEIGHT * 0.5] } else { return [this.pos[0] + __WEBPACK_IMPORTED_MODULE_0__Constants_js__["a" /* CONSTANTS */].NODE_COLLAPSED_WIDTH, this.pos[1] - __WEBPACK_IMPORTED_MODULE_0__Constants_js__["a" /* CONSTANTS */].NODE_TITLE_HEIGHT * 0.5] }
 // return [this.pos[0] + this.size[0] * 0.5, this.pos[1] + this.size[1] * 0.5];
   }
 
-  if (is_input && slot_number == -1) {
+  if (isInput && slotNumber === -1) {
     return [this.pos[0] + 10, this.pos[1] + 10]
   }
 
-  if (is_input && this.inputs.length > slot_number && this.inputs[slot_number].pos) { return [this.pos[0] + this.inputs[slot_number].pos[0], this.pos[1] + this.inputs[slot_number].pos[1]] } else if (!is_input && this.outputs.length > slot_number && this.outputs[slot_number].pos) { return [this.pos[0] + this.outputs[slot_number].pos[0], this.pos[1] + this.outputs[slot_number].pos[1]] }
+  if (isInput && this.inputs.length > slotNumber && this.inputs[slotNumber].pos) { return [this.pos[0] + this.inputs[slotNumber].pos[0], this.pos[1] + this.inputs[slotNumber].pos[1]] } else if (!isInput && this.outputs.length > slotNumber && this.outputs[slotNumber].pos) { return [this.pos[0] + this.outputs[slotNumber].pos[0], this.pos[1] + this.outputs[slotNumber].pos[1]] }
 
-  if (!is_input) // output
-  { return [this.pos[0] + this.size[0] + 1, this.pos[1] + 10 + slot_number * NODE_SLOT_HEIGHT] }
-  return [this.pos[0], this.pos[1] + 10 + slot_number * NODE_SLOT_HEIGHT]
+  if (!isInput) { return [this.pos[0] + this.size[0] + 1, this.pos[1] + 10 + slotNumber * __WEBPACK_IMPORTED_MODULE_0__Constants_js__["a" /* CONSTANTS */].NODE_SLOT_HEIGHT] }
+  return [this.pos[0], this.pos[1] + 10 + slotNumber * __WEBPACK_IMPORTED_MODULE_0__Constants_js__["a" /* CONSTANTS */].NODE_SLOT_HEIGHT]
 }
 
 /* Force align to grid */
 LGraphNode.prototype.alignToGrid = function () {
-  this.pos[0] = CANVAS_GRID_SIZE * Math.round(this.pos[0] / CANVAS_GRID_SIZE)
-  this.pos[1] = CANVAS_GRID_SIZE * Math.round(this.pos[1] / CANVAS_GRID_SIZE)
+  this.pos[0] = __WEBPACK_IMPORTED_MODULE_0__Constants_js__["a" /* CONSTANTS */].CANVAS_GRID_SIZE * Math.round(this.pos[0] / __WEBPACK_IMPORTED_MODULE_0__Constants_js__["a" /* CONSTANTS */].CANVAS_GRID_SIZE)
+  this.pos[1] = __WEBPACK_IMPORTED_MODULE_0__Constants_js__["a" /* CONSTANTS */].CANVAS_GRID_SIZE * Math.round(this.pos[1] / __WEBPACK_IMPORTED_MODULE_0__Constants_js__["a" /* CONSTANTS */].CANVAS_GRID_SIZE)
 }
 
 /* Console output */
 LGraphNode.prototype.trace = function (msg) {
   if (!this.console) { this.console = [] }
   this.console.push(msg)
-  if (this.console.length > LGraphNode.MAX_CONSOLE) { this.console.shift() }
+  if (this.console.length > __WEBPACK_IMPORTED_MODULE_0__Constants_js__["a" /* CONSTANTS */].MAX_CONSOLE) { this.console.shift() }
 
   this.graph.onNodeTrace(this, msg)
 }
 
 /* Forces to redraw or the main canvas (LGraphNode) or the bg canvas (links) */
-LGraphNode.prototype.setDirtyCanvas = function (dirty_foreground, dirty_background) {
+LGraphNode.prototype.setDirtyCanvas = function (dirtyForeground, dirtyBackground) {
   if (!this.graph) { return }
-  this.graph.sendActionToCanvas('setDirty', [dirty_foreground, dirty_background])
+  this.graph.sendActionToCanvas('setDirty', [dirtyForeground, dirtyBackground])
 }
 
 LGraphNode.prototype.loadImage = function (url) {
   var img = new Image()
-  img.src = node_images_path + url
+  img.src = __WEBPACK_IMPORTED_MODULE_0__Constants_js__["a" /* CONSTANTS */].node_images_path + url
   img.ready = false
 
   var that = this
@@ -4960,7 +4800,7 @@ LGraphNode.prototype.captureInput = function (v) {
   for (var i = 0; i < list.length; ++i) {
     var c = list[i]
 // releasing somebody elses capture?!
-    if (!v && c.node_capturing_input != this) { continue }
+    if (!v && c.node_capturing_input !== this) { continue }
 
 // change
     c.node_capturing_input = v ? this : null
@@ -5015,127 +4855,6 @@ LGraphNode.prototype.localToScreen = function (x, y, graphcanvas) {
 //   }
 
 
-/***/ }),
-/* 5 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-/* unused harmony export num2hex */
-/* unused harmony export hex2num */
-/* unused harmony export overlapBounding */
-/* unused harmony export isInsideRectangle */
-/* unused harmony export isInsideBounding */
-/* unused harmony export colorToString */
-/* unused harmony export distance */
-/* unused harmony export compareObjects */
-/* unused harmony export growBounding */
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return getTime; });
-/* unused harmony export cloneObject */
-/* unused harmony export isValidConnection */
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__Constants_js__ = __webpack_require__(0);
-
-
-var getTime = function getTime () { return Date.now() }
-
-var compareObjects = function (a, b) {
-  for (var i in a) {
-    if (a[i] != b[i]) { return false }
-  }
-  return true
-}
-
-var distance = function (a, b) {
-  return Math.sqrt((b[0] - a[0]) * (b[0] - a[0]) + (b[1] - a[1]) * (b[1] - a[1]))
-}
-
-function colorToString (c) {
-  return 'rgba(' + Math.round(c[0] * 255).toFixed() + ',' + Math.round(c[1] * 255).toFixed() + ',' + Math.round(c[2] * 255).toFixed() + ',' + (c.length == 4 ? c[3].toFixed(2) : '1.0') + ')'
-}
-
-function isInsideRectangle (x, y, left, top, width, height) {
-  if (left < x && (left + width) > x &&
-top < y && (top + height) > y) { return true }
-  return false
-}
-
-// [minx,miny,maxx,maxy]
-function growBounding (bounding, x, y) {
-  if (x < bounding[0]) { bounding[0] = x } else if (x > bounding[2]) { bounding[2] = x }
-
-  if (y < bounding[1]) { bounding[1] = y } else if (y > bounding[3]) { bounding[3] = y }
-}
-
-// point inside boundin box
-function isInsideBounding (p, bb) {
-  if (p[0] < bb[0][0] ||
-p[1] < bb[0][1] ||
-p[0] > bb[1][0] ||
-p[1] > bb[1][1]) { return false }
-  return true
-}
-
-// boundings overlap, format: [start,end]
-function overlapBounding (a, b) {
-  if (a[0] > b[2] ||
-a[1] > b[3] ||
-a[2] < b[0] ||
-a[3] < b[1]) { return false }
-  return true
-}
-
-// Convert a hex value to its decimal value - the inputted hex must be in the
-// format of a hex triplet - the kind we use for HTML colours. The function
-// will return an array with three values.
-function hex2num (hex) {
-  if (hex.charAt(0) == '#') hex = hex.slice(1) // Remove the '#' char - if there is one.
-  hex = hex.toUpperCase()
-  var hex_alphabets = '0123456789ABCDEF'
-  var value = new Array(3)
-  var k = 0
-  var int1, int2
-  for (var i = 0; i < 6; i += 2) {
-    int1 = hex_alphabets.indexOf(hex.charAt(i))
-    int2 = hex_alphabets.indexOf(hex.charAt(i + 1))
-    value[k] = (int1 * 16) + int2
-    k++
-  }
-  return (value)
-}
-
-// Give a array with three values as the argument and the function will return
-// the corresponding hex triplet.
-function num2hex (triplet) {
-  var hex_alphabets = '0123456789ABCDEF'
-  var hex = '#'
-  var int1, int2
-  for (var i = 0; i < 3; i++) {
-    int1 = triplet[i] / 16
-    int2 = triplet[i] % 16
-
-    hex += hex_alphabets.charAt(int1) + hex_alphabets.charAt(int2)
-  }
-  return (hex)
-}
-
-// separated just to improve if it doesnt work
-var cloneObject = function (obj, target) {
-  if (obj == null) return null
-  var r = JSON.parse(JSON.stringify(obj))
-  if (!target) return r
-
-  for (var i in r) { target[i] = r[i] }
-  return target
-}
-
-var isValidConnection = function (type_a, type_b) {
-    // generic output
-  if (!type_a || !type_b || type_a == type_a || (type_a !== __WEBPACK_IMPORTED_MODULE_0__Constants_js__["a" /* CONSTANTS */].EVENT && type_b !== __WEBPACK_IMPORTED_MODULE_0__Constants_js__["a" /* CONSTANTS */].EVENT && type_a.toLowerCase() == type_b.toLowerCase())) {
-    return true
-  }
-  return false
-}
-
-
 
 
 /***/ }),
@@ -5151,7 +4870,7 @@ var isValidConnection = function (type_a, type_b) {
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "b", function() { return Constant; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "h", function() { return Watch; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return Console; });
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__litegraph_js__ = __webpack_require__(1);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__litegraph_js__ = __webpack_require__(2);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__Constants_js__ = __webpack_require__(0);
 
 
@@ -5161,9 +4880,9 @@ var isValidConnection = function (type_a, type_b) {
 // import LGraph from '../litegraph.js'
 // import LGraphNode from '../litegraph.js'
 
-const createNode = __WEBPACK_IMPORTED_MODULE_0__litegraph_js__["g" /* createNode */]
-const LGraph = __WEBPACK_IMPORTED_MODULE_0__litegraph_js__["c" /* LGraph */]
-const LGraphNode = __WEBPACK_IMPORTED_MODULE_0__litegraph_js__["e" /* LGraphNode */]
+const createNode = __WEBPACK_IMPORTED_MODULE_0__litegraph_js__["f" /* createNode */]
+const LGraph = __WEBPACK_IMPORTED_MODULE_0__litegraph_js__["b" /* LGraph */]
+const LGraphNode = __WEBPACK_IMPORTED_MODULE_0__litegraph_js__["d" /* LGraphNode */]
 
 // basic nodes
 
@@ -5473,7 +5192,7 @@ function Console () {
   this.mode = __WEBPACK_IMPORTED_MODULE_1__Constants_js__["a" /* CONSTANTS */].ON_EVENT
   this.size = [60, 20]
   this.addProperty('msg', '')
-  this.addInput('log', __WEBPACK_IMPORTED_MODULE_0__litegraph_js__["b" /* EVENT */])
+  this.addInput('log', __WEBPACK_IMPORTED_MODULE_1__Constants_js__["a" /* CONSTANTS */].EVENT)
   this.addInput('msg', 0)
 }
 
@@ -5491,7 +5210,7 @@ Console.prototype.onExecute = function () {
 }
 
 Console.prototype.onGetInputs = function () {
-  return [['log', __WEBPACK_IMPORTED_MODULE_0__litegraph_js__["a" /* ACTION */]], ['warn', __WEBPACK_IMPORTED_MODULE_0__litegraph_js__["a" /* ACTION */]], ['error', __WEBPACK_IMPORTED_MODULE_0__litegraph_js__["a" /* ACTION */]]]
+  return [['log', __WEBPACK_IMPORTED_MODULE_0__litegraph_js__["ACTION"]], ['warn', __WEBPACK_IMPORTED_MODULE_0__litegraph_js__["ACTION"]], ['error', __WEBPACK_IMPORTED_MODULE_0__litegraph_js__["ACTION"]]]
 }
 
 
@@ -5516,7 +5235,7 @@ NodeScript.widgets_info = {
 }
 
 NodeScript.prototype.onPropertyChanged = function (name, value) {
-  if (name == 'onExecute' && __WEBPACK_IMPORTED_MODULE_0__litegraph_js__["f" /* allow_scripts */])	{
+  if (name == 'onExecute' && __WEBPACK_IMPORTED_MODULE_0__litegraph_js__["e" /* allow_scripts */])	{
     this._func = null
     try		{
       this._func = new Function(value)

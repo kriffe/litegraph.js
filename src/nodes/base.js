@@ -318,7 +318,7 @@ function Console () {
   this.mode = CONSTANTS.ON_EVENT
   this.size = [60, 20]
   this.addProperty('msg', '')
-  this.addInput('log', LITEGRAPH.EVENT)
+  this.addInput('log', CONSTANTS.EVENT)
   this.addInput('msg', 0)
 }
 
@@ -336,7 +336,7 @@ Console.prototype.onExecute = function () {
 }
 
 Console.prototype.onGetInputs = function () {
-  return [['log', LITEGRAPH.ACTION], ['warn', LITEGRAPH.ACTION], ['error', LITEGRAPH.ACTION]]
+  return [['log', CONSTANTS.ACTION], ['warn', CONSTANTS.ACTION], ['error', CONSTANTS.ACTION]]
 }
 
 

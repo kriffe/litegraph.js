@@ -1,5 +1,7 @@
 import {CONSTANTS} from './Constants.js'
-import {cloneObject} from './MathHelpers.js'
+import {isValidConnection, cloneObject, isInsideRectangle, getTime} from './MathHelpers.js'
+
+var debug = false
 
 /**
 * Base Class for all the node type classes
@@ -55,9 +57,9 @@ LGraphNode.prototype._ctor = function (title) {
 */
 LGraphNode.prototype.configure = function (info) {
   for (var j in info) {
-    if (j == 'console') { continue }
+    if (j === 'console') { continue }
 
-    if (j == 'properties') {
+    if (j === 'properties') {
 // i dont want to clone properties, I want to reuse the old container
       for (var k in info.properties) {
         this.properties[k] = info.properties[k]
@@ -66,11 +68,9 @@ LGraphNode.prototype.configure = function (info) {
       continue
     }
 
-    if (info[j] == null) { continue } else if (typeof (info[j]) === 'object') // object
-{
+    if (info[j] == null) { continue } else if (typeof (info[j]) === 'object') {
       if (this[j] && this[j].configure) { this[j].configure(info[j]) } else { this[j] = cloneObject(info[j], this[j]) }
-    } else // value
-{ this[j] = info[j] }
+    } else { this[j] = info[j] }
   }
 
   if (this.onConnectionsChange) {
@@ -163,7 +163,8 @@ LGraphNode.prototype.serialize = function () {
 
 /* Creates a clone of this node */
 LGraphNode.prototype.clone = function () {
-  var node = createNode(this.type)
+  // var node = createNode(this.type)
+  var node = new LGraphNode(this.title)
 
 // we clone it because serialize returns shared containers
   var data = cloneObject(this.serialize())
@@ -215,7 +216,7 @@ LGraphNode.prototype.getTitle = function () {
 LGraphNode.prototype.setOutputData = function (slot, data) {
   if (!this.outputs) { return }
 
-  if (slot == -1 || slot >= this.outputs.length) { return }
+  if (slot === -1 || slot >= this.outputs.length) { return }
 
   var output_info = this.outputs[slot]
   if (!output_info) { return }
@@ -236,19 +237,19 @@ LGraphNode.prototype.setOutputData = function (slot, data) {
 * retrieves the input data (data traveling through the connection) from one slot
 * @method getInputData
 * @param {number} slot
-* @param {boolean} force_update if set to true it will force the connected node of this slot to output data into this link
+* @param {boolean} forceUpdate if set to true it will force the connected node of this slot to output data into this link
 * @return {*} data or if it is not connected returns undefined
 */
-LGraphNode.prototype.getInputData = function (slot, force_update) {
+LGraphNode.prototype.getInputData = function (slot, forceUpdate) {
   if (!this.inputs) { return } // undefined;
 
   if (slot >= this.inputs.length || this.inputs[slot].link == null) { return }
 
-  var link_id = this.inputs[slot].link
-  var link = this.graph.links[ link_id ]
+  var linkId = this.inputs[slot].link
+  var link = this.graph.links[ linkId ]
 
 // used to extract data from the incomming connection
-  if (!force_update) { return link.data }
+  if (!forceUpdate) { return link.data }
 
   var node = this.graph.getNodeById(link.origin_id)
   if (!node) { return link.data }
@@ -292,9 +293,9 @@ LGraphNode.prototype.getInputNode = function (slot) {
   if (slot >= this.inputs.length) { return null }
   var input = this.inputs[slot]
   if (!input || !input.link) { return null }
-  var link_info = this.graph.links[ input.link ]
-  if (!link_info) { return null }
-  return this.graph.getNodeById(link_info.origin_id)
+  var linkInfo = this.graph.links[ input.link ]
+  if (!linkInfo) { return null }
+  return this.graph.getNodeById(linkInfo.origin_id)
 }
 
 /**
@@ -341,20 +342,20 @@ LGraphNode.prototype.isOutputConnected = function (slot) {
 * @return {array}
 */
 LGraphNode.prototype.getOutputNodes = function (slot) {
-  if (!this.outputs || this.outputs.length == 0) { return null }
+  if (!this.outputs || this.outputs.length === 0) { return null }
 
   if (slot >= this.outputs.length) { return null }
 
   var output = this.outputs[slot]
-  if (!output.links || output.links.length == 0) { return null }
+  if (!output.links || output.links.length === 0) { return null }
 
   var r = []
   for (var i = 0; i < output.links.length; i++) {
-    var link_id = output.links[i]
-    var link = this.graph.links[ link_id ]
+    var linkId = output.links[i]
+    var link = this.graph.links[ linkId ]
     if (link) {
-      var target_node = this.graph.getNodeById(link.target_id)
-      if (target_node) { r.push(target_node) }
+      var targetNode = this.graph.getNodeById(link.target_id)
+      if (targetNode) { r.push(targetNode) }
     }
   }
   return r
@@ -373,26 +374,24 @@ LGraphNode.prototype.trigger = function (action, param) {
 
   for (var i = 0; i < this.outputs.length; ++i) {
     var output = this.outputs[i]
-    if (output.type !== EVENT || (action && output.name != action)) { continue }
+    if (output.type !== CONSTANTS.EVENT || (action && output.name !== action)) { continue }
 
     var links = output.links
     if (!links || !links.length) { continue }
 
 // for every link attached here
     for (var k = 0; k < links.length; ++k) {
-      var link_info = this.graph.links[ links[k] ]
-      if (!link_info) // not connected
-  { continue }
-      var node = this.graph.getNodeById(link_info.target_id)
-      if (!node) // node not found?
-  { continue }
+      var linkInfo = this.graph.links[ links[k] ]
+      if (!linkInfo) { continue } // not connected
+      var node = this.graph.getNodeById(linkInfo.target_id)
+      if (!node) { continue } // node not found?
 
 // used to mark events in graph
-      link_info._last_time = getTime()
+      linkInfo._last_time = getTime()
 
-      var target_connection = node.inputs[ link_info.target_slot ]
+      var targetConnection = node.inputs[ linkInfo.target_slot ]
 
-      if (node.onAction) { node.onAction(target_connection.name, param) } else if (node.mode === ON_TRIGGER) {
+      if (node.onAction) { node.onAction(targetConnection.name, param) } else if (node.mode === CONSTANTS.ON_TRIGGER) {
         if (node.onExecute) { node.onExecute(param) }
       }
     }
@@ -407,15 +406,15 @@ LGraphNode.prototype.trigger = function (action, param) {
 * @param {string} type string defining the output type ("vec3","number",...)
 * @param {Object} extra_info this can be used to have special properties of the property (like values, etc)
 */
-LGraphNode.prototype.addProperty = function (name, default_value, type, extra_info) {
-  var o = { name: name, type: type, default_value: default_value }
-  if (extra_info) {
-    for (var i in extra_info) { o[i] = extra_info[i] }
+LGraphNode.prototype.addProperty = function (name, defaultValue, type, extraInfo) {
+  var o = { name: name, type: type, default_value: defaultValue }
+  if (extraInfo) {
+    for (var i in extraInfo) { o[i] = extraInfo[i] }
   }
   if (!this.properties_info) { this.properties_info = [] }
   this.properties_info.push(o)
   if (!this.properties) { this.properties = {} }
-  this.properties[ name ] = default_value
+  this.properties[ name ] = defaultValue
   return o
 }
 
@@ -428,10 +427,10 @@ LGraphNode.prototype.addProperty = function (name, default_value, type, extra_in
 * @param {string} type string defining the output type ("vec3","number",...)
 * @param {Object} extra_info this can be used to have special properties of an output (label, special color, position, etc)
 */
-LGraphNode.prototype.addOutput = function (name, type, extra_info) {
+LGraphNode.prototype.addOutput = function (name, type, extraInfo) {
   var o = { name: name, type: type, links: null }
-  if (extra_info) {
-    for (var i in extra_info) { o[i] = extra_info[i] }
+  if (extraInfo) {
+    for (var i in extraInfo) { o[i] = extraInfo[i] }
   }
 
   if (!this.outputs) { this.outputs = [] }
@@ -481,11 +480,11 @@ LGraphNode.prototype.removeOutput = function (slot) {
 * @param {string} type string defining the input type ("vec3","number",...), it its a generic one use 0
 * @param {Object} extra_info this can be used to have special properties of an input (label, color, position, etc)
 */
-LGraphNode.prototype.addInput = function (name, type, extra_info) {
+LGraphNode.prototype.addInput = function (name, type, extraInfo) {
   type = type || 0
   var o = {name: name, type: type, link: null}
-  if (extra_info) {
-    for (var i in extra_info) { o[i] = extra_info[i] }
+  if (extraInfo) {
+    for (var i in extraInfo) { o[i] = extraInfo[i] }
   }
 
   if (!this.inputs) { this.inputs = [] }
@@ -560,17 +559,17 @@ LGraphNode.prototype.computeSize = function (minHeight, out) {
   rows = Math.max(rows, 1)
   size[1] = rows * 14 + 6
 
-  var font_size = 14
-  var title_width = compute_text_size(this.title)
-  var input_width = 0
-  var output_width = 0
+  var fontSize = 14
+  var titleWidth = compute_text_size(this.title)
+  var inputWidth = 0
+  var outputWidth = 0
 
   if (this.inputs) {
     for (var i = 0, l = this.inputs.length; i < l; ++i) {
       var input = this.inputs[i]
       var text = input.label || input.name || ''
-      var text_width = compute_text_size(text)
-      if (input_width < text_width) { input_width = text_width }
+      var textWidth = compute_text_size(text)
+      if (inputWidth < textWidth) { inputWidth = textWidth }
     }
   }
 
@@ -578,17 +577,17 @@ LGraphNode.prototype.computeSize = function (minHeight, out) {
     for (var i = 0, l = this.outputs.length; i < l; ++i) {
       var output = this.outputs[i]
       var text = output.label || output.name || ''
-      var text_width = compute_text_size(text)
-      if (output_width < text_width) { output_width = text_width }
+      var textWidth = compute_text_size(text)
+      if (outputWidth < textWidth) { outputWidth = textWidth }
     }
   }
 
-  size[0] = Math.max(input_width + output_width + 10, title_width)
-  size[0] = Math.max(size[0], NODE_WIDTH)
+  size[0] = Math.max(inputWidth + outputWidth + 10, titleWidth)
+  size[0] = Math.max(size[0], CONSTANTS.NODE_WIDTH)
 
   function compute_text_size (text) {
     if (!text) { return 0 }
-    return font_size * text.length * 0.6
+    return fontSize * text.length * 0.6
   }
 
   return size
@@ -600,7 +599,7 @@ LGraphNode.prototype.computeSize = function (minHeight, out) {
 * @return {Float32Array[4]} the total size
 */
 LGraphNode.prototype.getBounding = function () {
-  return new Float32Array([this.pos[0] - 4, this.pos[1] - NODE_TITLE_HEIGHT, this.pos[0] + this.size[0] + 4, this.pos[1] + this.size[1] + LGraph.NODE_TITLE_HEIGHT])
+  return new Float32Array([this.pos[0] - 4, this.pos[1] - CONSTANTS.NODE_TITLE_HEIGHT, this.pos[0] + this.size[0] + 4, this.pos[1] + this.size[1] + CONSTANTS.NODE_TITLE_HEIGHT])
 }
 
 /**
@@ -613,12 +612,12 @@ LGraphNode.prototype.getBounding = function () {
 LGraphNode.prototype.isPointInsideNode = function (x, y, margin) {
   margin = margin || 0
 
-  var margin_top = this.graph && this.graph.isLive() ? 0 : 20
+  var marginTop = this.graph && this.graph.isLive() ? 0 : 20
   if (this.flags.collapsed) {
 // if ( distance([x,y], [this.pos[0] + this.size[0]*0.5, this.pos[1] + this.size[1]*0.5]) < .NODE_COLLAPSED_RADIUS)
-    if (isInsideRectangle(x, y, this.pos[0] - margin, this.pos[1] - NODE_TITLE_HEIGHT - margin, NODE_COLLAPSED_WIDTH + 2 * margin, NODE_TITLE_HEIGHT + 2 * margin)) { return true }
+    if (isInsideRectangle(x, y, this.pos[0] - margin, this.pos[1] - CONSTANTS.NODE_TITLE_HEIGHT - margin, CONSTANTS.NODE_COLLAPSED_WIDTH + 2 * margin, CONSTANTS.NODE_TITLE_HEIGHT + 2 * margin)) { return true }
   } else if ((this.pos[0] - 4 - margin) < x && (this.pos[0] + this.size[0] + 4 + margin) > x &&
-(this.pos[1] - margin_top - margin) < y && (this.pos[1] + this.size[1] + margin) > y) { return true }
+(this.pos[1] - marginTop - margin) < y && (this.pos[1] + this.size[1] + margin) > y) { return true }
   return false
 }
 
@@ -634,16 +633,16 @@ LGraphNode.prototype.getSlotInPosition = function (x, y) {
   if (this.inputs) {
     for (var i = 0, l = this.inputs.length; i < l; ++i) {
       var input = this.inputs[i]
-      var link_pos = this.getConnectionPos(true, i)
-      if (isInsideRectangle(x, y, link_pos[0] - 10, link_pos[1] - 5, 20, 10)) { return { input: input, slot: i, link_pos: link_pos, locked: input.locked } }
+      var linkPos = this.getConnectionPos(true, i)
+      if (isInsideRectangle(x, y, linkPos[0] - 10, linkPos[1] - 5, 20, 10)) { return { input: input, slot: i, link_pos: linkPos, locked: input.locked } }
     }
   }
 
   if (this.outputs) {
     for (var i = 0, l = this.outputs.length; i < l; ++i) {
       var output = this.outputs[i]
-      var link_pos = this.getConnectionPos(false, i)
-      if (isInsideRectangle(x, y, link_pos[0] - 10, link_pos[1] - 5, 20, 10)) { return { output: output, slot: i, link_pos: link_pos, locked: output.locked } }
+      var linkPos = this.getConnectionPos(false, i)
+      if (isInsideRectangle(x, y, linkPos[0] - 10, linkPos[1] - 5, 20, 10)) { return { output: output, slot: i, link_pos: linkPos, locked: output.locked } }
     }
   }
 
@@ -659,7 +658,7 @@ LGraphNode.prototype.getSlotInPosition = function (x, y) {
 LGraphNode.prototype.findInputSlot = function (name) {
   if (!this.inputs) { return -1 }
   for (var i = 0, l = this.inputs.length; i < l; ++i) {
-    if (name == this.inputs[i].name) { return i }
+    if (name === this.inputs[i].name) { return i }
   }
   return -1
 }
@@ -673,7 +672,7 @@ LGraphNode.prototype.findInputSlot = function (name) {
 LGraphNode.prototype.findOutputSlot = function (name) {
   if (!this.outputs) return -1
   for (var i = 0, l = this.outputs.length; i < l; ++i) {
-    if (name == this.outputs[i].name) { return i }
+    if (name === this.outputs[i].name) { return i }
   }
   return -1
 }
@@ -686,8 +685,8 @@ LGraphNode.prototype.findOutputSlot = function (name) {
 * @param {number_or_string} target_slot the input slot of the target node (could be the number of the slot or the string with the name of the slot, or -1 to connect a trigger)
 * @return {boolean} if it was connected succesfully
 */
-LGraphNode.prototype.connect = function (slot, target_node, target_slot) {
-  target_slot = target_slot || 0
+LGraphNode.prototype.connect = function (slot, targetNode, targetSlot) {
+  targetSlot = targetSlot || 0
 
 // seek for the output slot
   if (slot.constructor === String) {
@@ -701,20 +700,20 @@ LGraphNode.prototype.connect = function (slot, target_node, target_slot) {
     return false
   }
 
-  if (target_node && target_node.constructor === Number) { target_node = this.graph.getNodeById(target_node) }
-  if (!target_node) { throw ('Node not found') }
+  if (targetNode && targetNode.constructor === Number) { targetNode = this.graph.getNodeById(targetNode) }
+  if (!targetNode) { throw new Error('Node not found') }
 
 // avoid loopback
-  if (target_node == this) { return false }
+  if (targetNode === this) { return false }
 
 // you can specify the slot by name
-  if (target_slot.constructor === String) {
-    target_slot = target_node.findInputSlot(target_slot)
-    if (target_slot == -1) {
-      if (debug) { console.log('Connect: Error, no slot of name ' + target_slot) }
+  if (targetSlot.constructor === String) {
+    targetSlot = targetNode.findInputSlot(targetSlot)
+    if (targetSlot === -1) {
+      if (debug) { console.log('Connect: Error, no slot of name ' + targetSlot) }
       return false
     }
-  } else if (target_slot === EVENT) {
+  } else if (targetSlot === CONSTANTS.EVENT) {
 // search for first slot with event?
 /*
 //create input for trigger
@@ -723,13 +722,13 @@ target_slot = target_node.inputs.length - 1; //last one is the one created
 target_node.mode = ON_TRIGGER;
 */
     return false
-  } else if (!target_node.inputs || target_slot >= target_node.inputs.length) {
+  } else if (!targetNode.inputs || targetSlot >= targetNode.inputs.length) {
     if (debug) { console.log('Connect: Error, slot number not found') }
     return false
   }
 
 // if there is something already plugged there, disconnect
-  if (target_node.inputs[ target_slot ].link != null) { target_node.disconnectInput(target_slot) }
+  if (targetNode.inputs[ targetSlot ].link != null) { targetNode.disconnectInput(targetSlot) }
 
 // why here??
   this.setDirtyCanvas(false, true)
@@ -738,11 +737,11 @@ target_node.mode = ON_TRIGGER;
   var output = this.outputs[slot]
 
 // allows nodes to block connection
-  if (target_node.onConnectInput) {
-    if (target_node.onConnectInput(target_slot, output.type, output) === false) { return false }
+  if (targetNode.onConnectInput) {
+    if (targetNode.onConnectInput(targetSlot, output.type, output) === false) { return false }
   }
 
-  var input = target_node.inputs[target_slot]
+  var input = targetNode.inputs[targetSlot]
 
   if (isValidConnection(output.type, input.type)) {
     var link_info = {
@@ -750,8 +749,8 @@ target_node.mode = ON_TRIGGER;
       type: input.type,
       origin_id: this.id,
       origin_slot: slot,
-      target_id: target_node.id,
-      target_slot: target_slot
+      target_id: targetNode.id,
+      target_slot: targetSlot
     }
 
 // add to graph links list
@@ -761,10 +760,10 @@ target_node.mode = ON_TRIGGER;
     if (output.links == null) { output.links = [] }
     output.links.push(link_info.id)
 // connect in input
-    target_node.inputs[target_slot].link = link_info.id
+    targetNode.inputs[targetSlot].link = link_info.id
 
     if (this.onConnectionsChange) { this.onConnectionsChange(OUTPUT, slot, true, link_info, output) } // link_info has been created now, so its updated
-    if (target_node.onConnectionsChange) { target_node.onConnectionsChange(INPUT, target_slot, true, link_info, input) }
+    if (targetNode.onConnectionsChange) { targetNode.onConnectionsChange(INPUT, targetSlot, true, link_info, input) }
   }
 
   this.setDirtyCanvas(false, true)
@@ -780,7 +779,7 @@ target_node.mode = ON_TRIGGER;
 * @param {LGraphNode} target_node the target node to which this slot is connected [Optional, if not target_node is specified all nodes will be disconnected]
 * @return {boolean} if it was disconnected succesfully
 */
-LGraphNode.prototype.disconnectOutput = function (slot, target_node) {
+LGraphNode.prototype.disconnectOutput = function (slot, targetNode) {
   if (slot.constructor === String) {
     slot = this.findOutputSlot(slot)
     if (slot == -1) {
@@ -794,43 +793,43 @@ LGraphNode.prototype.disconnectOutput = function (slot, target_node) {
 
 // get output slot
   var output = this.outputs[slot]
-  if (!output.links || output.links.length == 0) { return false }
+  if (!output.links || output.links.length === 0) { return false }
 
 // one of the links
-  if (target_node) {
-    if (target_node.constructor === Number) { target_node = this.graph.getNodeById(target_node) }
-    if (!target_node) { throw ('Target Node not found') }
+  if (targetNode) {
+    if (targetNode.constructor === Number) { targetNode = this.graph.getNodeById(targetNode) }
+    if (!targetNode) { throw new Error('Target Node not found') }
 
     for (var i = 0, l = output.links.length; i < l; i++) {
-      var link_id = output.links[i]
-      var link_info = this.graph.links[ link_id ]
+      var linkId = output.links[i]
+      var linkInfo = this.graph.links[ linkId ]
 
 // is the link we are searching for...
-      if (link_info.target_id == target_node.id) {
+      if (linkInfo.target_id == targetNode.id) {
         output.links.splice(i, 1) // remove here
-        var input = target_node.inputs[ link_info.target_slot ]
+        var input = targetNode.inputs[ linkInfo.target_slot ]
         input.link = null // remove there
-        delete this.graph.links[ link_id ] // remove the link from the links pool
-        if (target_node.onConnectionsChange) { target_node.onConnectionsChange(INPUT, link_info.target_slot, false, link_info, input) } // link_info hasnt been modified so its ok
-        if (this.onConnectionsChange) { this.onConnectionsChange(OUTPUT, slot, false, link_info, output) }
+        delete this.graph.links[ linkId ] // remove the link from the links pool
+        if (targetNode.onConnectionsChange) { targetNode.onConnectionsChange(CONSTANTS.INPUT, linkInfo.target_slot, false, linkInfo, input) } // link_info hasnt been modified so its ok
+        if (this.onConnectionsChange) { this.onConnectionsChange(CONSTANTS.OUTPUT, slot, false, linkInfo, output) }
         break
       }
     }
   } else // all the links
 {
     for (var i = 0, l = output.links.length; i < l; i++) {
-      var link_id = output.links[i]
-      var link_info = this.graph.links[ link_id ]
+      var linkId = output.links[i]
+      var linkInfo = this.graph.links[ linkId ]
 
-      var target_node = this.graph.getNodeById(link_info.target_id)
+      var targetNode = this.graph.getNodeById(linkInfo.target_id)
       var input = null
-      if (target_node) {
-        input = target_node.inputs[ link_info.target_slot ]
+      if (targetNode) {
+        input = targetNode.inputs[ linkInfo.target_slot ]
         input.link = null // remove other side link
       }
-      delete this.graph.links[ link_id ] // remove the link from the links pool
-      if (target_node.onConnectionsChange) { target_node.onConnectionsChange(INPUT, link_info.target_slot, false, link_info, input) } // link_info hasnt been modified so its ok
-      if (this.onConnectionsChange) { this.onConnectionsChange(OUTPUT, slot, false, link_info, output) }
+      delete this.graph.links[ linkId ] // remove the link from the links pool
+      if (targetNode.onConnectionsChange) { targetNode.onConnectionsChange(CONSTANTS.INPUT, linkInfo.target_slot, false, linkInfo, input) } // link_info hasnt been modified so its ok
+      if (this.onConnectionsChange) { this.onConnectionsChange(CONSTANTS.OUTPUT, slot, false, linkInfo, output) }
     }
     output.links = null
   }
@@ -850,7 +849,7 @@ LGraphNode.prototype.disconnectInput = function (slot) {
 // seek for the output slot
   if (slot.constructor === String) {
     slot = this.findInputSlot(slot)
-    if (slot == -1) {
+    if (slot === -1) {
       if (debug) { console.log('Connect: Error, no slot of name ' + slot) }
       return false
     }
@@ -862,30 +861,30 @@ LGraphNode.prototype.disconnectInput = function (slot) {
   var input = this.inputs[slot]
   if (!input) { return false }
 
-  var link_id = this.inputs[slot].link
+  var linkId = this.inputs[slot].link
   this.inputs[slot].link = null
 
 // remove other side
-  var link_info = this.graph.links[ link_id ]
-  if (link_info) {
-    var target_node = this.graph.getNodeById(link_info.origin_id)
+  var linkInfo = this.graph.links[ linkId ]
+  if (linkInfo) {
+    var target_node = this.graph.getNodeById(linkInfo.origin_id)
     if (!target_node) { return false }
 
-    var output = target_node.outputs[ link_info.origin_slot ]
+    var output = target_node.outputs[ linkInfo.origin_slot ]
     if (!output || !output.links || output.links.length == 0) { return false }
 
 // search in the inputs list for this link
     for (var i = 0, l = output.links.length; i < l; i++) {
-      var link_id = output.links[i]
-      var link_info = this.graph.links[ link_id ]
-      if (link_info.target_id == this.id) {
+      var linkId = output.links[i]
+      var linkInfo = this.graph.links[ linkId ]
+      if (linkInfo.target_id == this.id) {
         output.links.splice(i, 1)
         break
       }
     }
 
-    if (this.onConnectionsChange) { this.onConnectionsChange(INPUT, slot, false, link_info, input) }
-    if (target_node.onConnectionsChange) { target_node.onConnectionsChange(OUTPUT, i, false, link_info, output) }
+    if (this.onConnectionsChange) { this.onConnectionsChange(INPUT, slot, false, linkInfo, input) }
+    if (target_node.onConnectionsChange) { target_node.onConnectionsChange(OUTPUT, i, false, linkInfo, output) }
   }
 
   this.setDirtyCanvas(false, true)
@@ -900,47 +899,46 @@ LGraphNode.prototype.disconnectInput = function (slot) {
 * @param {number_or_string} slot (could be the number of the slot or the string with the name of the slot)
 * @return {[x,y]} the position
 **/
-LGraphNode.prototype.getConnectionPos = function (is_input, slot_number) {
+LGraphNode.prototype.getConnectionPos = function (isInput, slotNumber) {
   if (this.flags.collapsed) {
-    if (is_input) { return [this.pos[0], this.pos[1] - NODE_TITLE_HEIGHT * 0.5] } else { return [this.pos[0] + NODE_COLLAPSED_WIDTH, this.pos[1] - NODE_TITLE_HEIGHT * 0.5] }
+    if (isInput) { return [this.pos[0], this.pos[1] - CONSTANTS.NODE_TITLE_HEIGHT * 0.5] } else { return [this.pos[0] + CONSTANTS.NODE_COLLAPSED_WIDTH, this.pos[1] - CONSTANTS.NODE_TITLE_HEIGHT * 0.5] }
 // return [this.pos[0] + this.size[0] * 0.5, this.pos[1] + this.size[1] * 0.5];
   }
 
-  if (is_input && slot_number == -1) {
+  if (isInput && slotNumber === -1) {
     return [this.pos[0] + 10, this.pos[1] + 10]
   }
 
-  if (is_input && this.inputs.length > slot_number && this.inputs[slot_number].pos) { return [this.pos[0] + this.inputs[slot_number].pos[0], this.pos[1] + this.inputs[slot_number].pos[1]] } else if (!is_input && this.outputs.length > slot_number && this.outputs[slot_number].pos) { return [this.pos[0] + this.outputs[slot_number].pos[0], this.pos[1] + this.outputs[slot_number].pos[1]] }
+  if (isInput && this.inputs.length > slotNumber && this.inputs[slotNumber].pos) { return [this.pos[0] + this.inputs[slotNumber].pos[0], this.pos[1] + this.inputs[slotNumber].pos[1]] } else if (!isInput && this.outputs.length > slotNumber && this.outputs[slotNumber].pos) { return [this.pos[0] + this.outputs[slotNumber].pos[0], this.pos[1] + this.outputs[slotNumber].pos[1]] }
 
-  if (!is_input) // output
-  { return [this.pos[0] + this.size[0] + 1, this.pos[1] + 10 + slot_number * NODE_SLOT_HEIGHT] }
-  return [this.pos[0], this.pos[1] + 10 + slot_number * NODE_SLOT_HEIGHT]
+  if (!isInput) { return [this.pos[0] + this.size[0] + 1, this.pos[1] + 10 + slotNumber * CONSTANTS.NODE_SLOT_HEIGHT] }
+  return [this.pos[0], this.pos[1] + 10 + slotNumber * CONSTANTS.NODE_SLOT_HEIGHT]
 }
 
 /* Force align to grid */
 LGraphNode.prototype.alignToGrid = function () {
-  this.pos[0] = CANVAS_GRID_SIZE * Math.round(this.pos[0] / CANVAS_GRID_SIZE)
-  this.pos[1] = CANVAS_GRID_SIZE * Math.round(this.pos[1] / CANVAS_GRID_SIZE)
+  this.pos[0] = CONSTANTS.CANVAS_GRID_SIZE * Math.round(this.pos[0] / CONSTANTS.CANVAS_GRID_SIZE)
+  this.pos[1] = CONSTANTS.CANVAS_GRID_SIZE * Math.round(this.pos[1] / CONSTANTS.CANVAS_GRID_SIZE)
 }
 
 /* Console output */
 LGraphNode.prototype.trace = function (msg) {
   if (!this.console) { this.console = [] }
   this.console.push(msg)
-  if (this.console.length > LGraphNode.MAX_CONSOLE) { this.console.shift() }
+  if (this.console.length > CONSTANTS.MAX_CONSOLE) { this.console.shift() }
 
   this.graph.onNodeTrace(this, msg)
 }
 
 /* Forces to redraw or the main canvas (LGraphNode) or the bg canvas (links) */
-LGraphNode.prototype.setDirtyCanvas = function (dirty_foreground, dirty_background) {
+LGraphNode.prototype.setDirtyCanvas = function (dirtyForeground, dirtyBackground) {
   if (!this.graph) { return }
-  this.graph.sendActionToCanvas('setDirty', [dirty_foreground, dirty_background])
+  this.graph.sendActionToCanvas('setDirty', [dirtyForeground, dirtyBackground])
 }
 
 LGraphNode.prototype.loadImage = function (url) {
   var img = new Image()
-  img.src = node_images_path + url
+  img.src = CONSTANTS.node_images_path + url
   img.ready = false
 
   var that = this
@@ -999,7 +997,7 @@ LGraphNode.prototype.captureInput = function (v) {
   for (var i = 0; i < list.length; ++i) {
     var c = list[i]
 // releasing somebody elses capture?!
-    if (!v && c.node_capturing_input != this) { continue }
+    if (!v && c.node_capturing_input !== this) { continue }
 
 // change
     c.node_capturing_input = v ? this : null
@@ -1052,3 +1050,7 @@ LGraphNode.prototype.localToScreen = function (x, y, graphcanvas) {
 //       this.quadraticCurveTo(x, y, x + radius, y)
 //     }
 //   }
+
+export {
+  LGraphNode
+}

@@ -16,7 +16,7 @@ LGAudio.getAudioContext = function()
 			console.error("AudioContext not supported by browser");
 			return null;
 		}
-		this._audio_context = new AudioContext();	
+		this._audio_context = new AudioContext();
 		this._audio_context.onmessage = function(msg) { console.log("msg",msg);};
 		this._audio_context.onended = function(msg) { console.log("ended",msg);};
 		this._audio_context.oncomplete = function(msg) { console.log("complete",msg);};
@@ -145,7 +145,7 @@ LGAudio.onConnectionsChange = function( connection, slot, connected, link_info )
 		target_audionode = target_node.audionode;
 
 	//do the connection/disconnection
-	if( connected )	
+	if( connected )
 		LGAudio.connect( local_audionode, target_audionode );
 	else
 		LGAudio.disconnect( local_audionode, target_audionode );
@@ -365,7 +365,7 @@ LGAudioSource.prototype.onAction = function(event)
 
 LGAudioSource.prototype.onPropertyChanged = function( name, value )
 {
-	if( name == "src" ) 
+	if( name == "src" )
 		this.loadSound( value );
 	else if(name == "gain")
 		this.audionode.gain.value = value;
@@ -448,12 +448,12 @@ LGAudioSource.prototype.onConnectionsChange = LGAudio.onConnectionsChange;
 
 LGAudioSource.prototype.onGetInputs = function()
 {
-	return [["playbackRate","number"],["Play",LiteGraph.ACTION],["Stop",LiteGraph.ACTION]];
+	return [["playbackRate","number"],["Play",CONSTANTS.ACTION],["Stop",CONSTANTS.ACTION]];
 }
 
 LGAudioSource.prototype.onGetOutputs = function()
 {
-	return [["buffer","audiobuffer"],["ended",LiteGraph.EVENT]];
+	return [["buffer","audiobuffer"],["ended",CONSTANTS.EVENT]];
 }
 
 LGAudioSource.prototype.onDropFile = function(file)
@@ -565,7 +565,7 @@ LiteGraph.registerNodeType( "audio/analyser", LGAudioAnalyser );
 
 function LGAudioGain()
 {
-	//default 
+	//default
 	this.properties = {
 		gain: 1
 	};
@@ -599,7 +599,7 @@ LiteGraph.registerNodeType("audio/gain", LGAudioGain);
 
 function LGAudioConvolver()
 {
-	//default 
+	//default
 	this.properties = {
 		impulse_src:"",
 		normalize: true
@@ -620,9 +620,9 @@ LGAudioConvolver.prototype.onRemove = function()
 
 LGAudioConvolver.prototype.onPropertyChanged = function( name, value )
 {
-	if( name == "impulse_src" ) 
+	if( name == "impulse_src" )
 		this.loadImpulse( value );
-	else if( name == "normalize" ) 
+	else if( name == "normalize" )
 		this.audionode.normalize = value;
 }
 
@@ -672,7 +672,7 @@ LiteGraph.registerNodeType("audio/convolver", LGAudioConvolver);
 
 function LGAudioDynamicsCompressor()
 {
-	//default 
+	//default
 	this.properties = {
 		threshold: -50,
 		knee: 40,
@@ -716,7 +716,7 @@ LiteGraph.registerNodeType("audio/dynamicsCompressor", LGAudioDynamicsCompressor
 
 function LGAudioWaveShaper()
 {
-	//default 
+	//default
 	this.properties = {
 	};
 
@@ -751,7 +751,7 @@ LiteGraph.registerNodeType("audio/waveShaper", LGAudioWaveShaper);
 
 function LGAudioMixer()
 {
-	//default 
+	//default
 	this.properties = {
 		gain1: 0.5,
 		gain2: 0.5
@@ -785,9 +785,9 @@ LGAudioMixer.prototype.getAudioNodeInInputSlot = function( slot )
 
 LGAudioMixer.prototype.onPropertyChanged = function( name, value )
 {
-	if( name == "gain1" ) 
+	if( name == "gain1" )
 		this.audionode1.gain.value = value;
-	else if( name == "gain2" ) 
+	else if( name == "gain2" )
 		this.audionode2.gain.value = value;
 }
 
@@ -824,7 +824,7 @@ LiteGraph.registerNodeType("audio/mixer", LGAudioMixer);
 
 function LGAudioDelay()
 {
-	//default 
+	//default
 	this.properties = {
 		delayTime: 0.5
 	};
@@ -852,13 +852,13 @@ LiteGraph.registerNodeType("audio/delay", LGAudioDelay);
 
 function LGAudioBiquadFilter()
 {
-	//default 
+	//default
 	this.properties = {
 		frequency: 350,
 		detune: 0,
 		Q: 1
 	};
-	this.addProperty("type","lowpass","enum",{values:["lowpass","highpass","bandpass","lowshelf","highshelf","peaking","notch","allpass"]});	
+	this.addProperty("type","lowpass","enum",{values:["lowpass","highpass","bandpass","lowshelf","highshelf","peaking","notch","allpass"]});
 
 	//create node
 	this.audionode = LGAudio.getAudioContext().createBiquadFilter();
@@ -900,13 +900,13 @@ LiteGraph.registerNodeType("audio/biquadfilter", LGAudioBiquadFilter);
 
 function LGAudioOscillatorNode()
 {
-	//default 
+	//default
 	this.properties = {
 		frequency: 440,
 		detune: 0,
 		type: "sine"
 	};
-	this.addProperty("type","sine","enum",{values:["sine","square","sawtooth","triangle","custom"]});	
+	this.addProperty("type","sine","enum",{values:["sine","square","sawtooth","triangle","custom"]});
 
 	//create node
 	this.audionode = LGAudio.getAudioContext().createOscillator();
@@ -973,7 +973,7 @@ LiteGraph.registerNodeType("audio/oscillator", LGAudioOscillatorNode);
 
 //*****************************************************
 
-//EXTRA 
+//EXTRA
 
 
 function LGAudioVisualization()
@@ -1057,7 +1057,7 @@ LiteGraph.registerNodeType("audio/visualization", LGAudioVisualization);
 
 function LGAudioBandSignal()
 {
-	//default 
+	//default
 	this.properties = {
 		band: 440,
 		amplitude: 1
@@ -1118,7 +1118,7 @@ function LGAudioScript()
 		LGAudioScript.default_code = code.substr(index, index2 - index);
 	}
 
-	//default 
+	//default
 	this.properties = {
 		code: LGAudioScript.default_code
 	};

@@ -1,5 +1,5 @@
 
-import * as LiteGraph from '../litegraph.js'
+import {CONSTANTS} from '../Constants.js'
 // event related nodes
 var DelayEventNode = (function () {
 
@@ -7,8 +7,8 @@ var DelayEventNode = (function () {
   function DelayEvent () {
     this.size = [60, 20]
     this.addProperty('time', 1000)
-    this.addInput('event', LiteGraph.ACTION)
-    this.addOutput('on_time', LiteGraph.EVENT)
+    this.addInput('event', CONSTANTS.ACTION)
+    this.addOutput('on_time', CONSTANTS.EVENT)
 
     this._pending = []
   }

@@ -14,6 +14,11 @@ var CONSTANTS = {
   MAX_NUMBER_OF_NODES: 1000, // avoid infinite loops
   DEFAULT_POSITION: [100, 100], // default node position
   node_images_path: '',
+  STATUS_STOPPED: 1,
+  STATUS_RUNNING: 2,
+
+  EVENT: -1, // for outputs
+  ACTION: -1, // for inputs
 
 // enums
   INPUT: 1,
