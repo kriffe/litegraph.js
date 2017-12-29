@@ -1,6 +1,6 @@
 {
   "name": "litegraph.js",
-  "version": "1.0.0-4",
+  "version": "1.0.0-5",
   "description": "A graph node editor similar to PD or UDK Blueprints, it works in a HTML5 Canvas and allow to exported graphs to be included in applications.",
   "main": "dist/litegraph.js",
   "directories": {
@@ -12,7 +12,7 @@
     "start": "npx nodemon server.js",
     "prebuild": "grunt clean:build",
     "build": "npx webpack",
-    "postbuild": "grunt concat:build && grunt copy:css",
+    "postbuild": "grunt concat:build",
     "test": "echo \"Error: no test specified\" && exit 1",
     "bump": "npm --no-git-tag-version version prerelease"
   },
