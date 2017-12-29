@@ -36,7 +36,7 @@ function ContextMenu (values, options) {
   }
 
   var root = document.createElement('div')
-  root.className = 'LiteGraph litecontextmenu litemenubar-panel'
+  root.className = 'litegraph litecontextmenu litemenubar-panel'
   root.style.minWidth = 100
   root.style.minHeight = 100
   root.style.pointerEvents = 'none'

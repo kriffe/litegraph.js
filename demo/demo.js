@@ -2,7 +2,7 @@ import {LITEGRAPH} from '/dist/litegraph.module.js'
 
 var graph = new LITEGRAPH.LGraph()
 
-var graphcanvas = new LITEGRAPH.LGraphCanvas('#graphCanvas', graph)
+var graphcanvas = new LITEGRAPH.LGraphCanvas('#litegraphcanvas', graph)
 graphcanvas.resize()
 
   // var node_button = LITEGRAPH.createNode('widget/button')

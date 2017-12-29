@@ -8,7 +8,8 @@ module.exports = function (grunt) {
         dest: 'dist/litegraph.module.js'
       }
     },
-    copy: { },
+    copy: {
+     },
     clean: {
       build: {src: ['dist/*']}
     }
