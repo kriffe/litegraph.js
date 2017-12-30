@@ -100,7 +100,7 @@ var addNodeMethod = function (name, func) {
 var createNode = function (type, title, options) {
   var BaseClass = registered_node_types[type]
   if (!BaseClass) {
-    if (debug) { console.log('GraphNode type "' + type + '" not registered.') }
+    console.warn('GraphNode type "' + type + '" not registered.')
     return null
   }
 
